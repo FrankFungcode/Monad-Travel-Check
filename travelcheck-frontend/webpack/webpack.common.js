@@ -5,6 +5,8 @@
 
 const path = require("node:path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 module.exports = {
   entry: path.resolve(__dirname, "../src/index.tsx"),
@@ -61,6 +63,10 @@ module.exports = {
       meta: {
         viewport: "width=device-width, initial-scale=1, shrink-to-fit=no"
       }
+    }),
+    new webpack.DefinePlugin({
+      "process.env.VITE_SIGNER_PRIVATE_KEY": JSON.stringify(process.env.VITE_SIGNER_PRIVATE_KEY || ""),
+      "process.env.VITE_API_BASE_URL": JSON.stringify(process.env.VITE_API_BASE_URL || "")
     })
   ]
 };

@@ -23,7 +23,6 @@ export function RewardsPage() {
   const {
     getUserStakes,
     getCheckinRecords,
-    isRedPacketClaimed,
     getTotalRedPacketClaimed,
     claimRedPacket: claimRedPacketFn,
   } = useStaking()
@@ -66,11 +65,10 @@ export function RewardsPage() {
             // Check each record for red packet status
             await Promise.all(
               records.map(async (record, index) => {
-                const claimed = await isRedPacketClaimed(stakeId, index)
-
-                // Try to get claimed amount from localStorage
+                // Use localStorage to check if red packet is claimed
                 const storageKey = `redpacket_${stakeId}_${index}`
                 const storedAmount = localStorage.getItem(storageKey)
+                const claimed = !!storedAmount
 
                 // Construct reward object
                 allRedPackets.push({
@@ -111,7 +109,7 @@ export function RewardsPage() {
     }
 
     loadData()
-  }, [address, getUserStakes, getCheckinRecords, isRedPacketClaimed, getTotalRedPacketClaimed, getUserBadges])
+  }, [address, getUserStakes, getCheckinRecords, getTotalRedPacketClaimed, getUserBadges])
 
   const handleSpin = async (): Promise<LotteryPrize> => {
     // Simulate API call for lottery (not yet implemented)

@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { parseEther, formatEther } from 'ethers'
+import { parseEther, formatEther, Wallet, solidityPackedKeccak256, getBytes } from 'ethers'
 import { useSetAtom } from 'jotai'
 import { showSuccessToastAtom, showErrorToastAtom } from '@/store/ui.atom'
 import {
@@ -301,6 +301,45 @@ export function useStaking() {
   )
 
   /**
+   * Generate red packet signature
+   * @param stakeId Stake ID
+   * @param checkinIndex Check-in index
+   * @param amount Red packet amount in wei
+   * @param expiry Expiry timestamp
+   * @param userAddress User's wallet address
+   * @returns Signature string
+   */
+  const generateRedPacketSignature = useCallback(
+    async (
+      stakeId: string,
+      checkinIndex: number,
+      amount: bigint,
+      expiry: number,
+      userAddress: string
+    ): Promise<string> => {
+      const signerPrivateKey = process.env.VITE_SIGNER_PRIVATE_KEY
+      if (!signerPrivateKey) {
+        throw new Error('Signer private key not configured')
+      }
+
+      // Create signer wallet
+      const signerWallet = new Wallet(signerPrivateKey)
+
+      // Construct message hash (must match contract's keccak256 format)
+      const messageHash = solidityPackedKeccak256(
+        ['uint256', 'uint256', 'uint256', 'uint256', 'address'],
+        [stakeId, checkinIndex, amount, expiry, userAddress]
+      )
+
+      // Sign the message (ethers v6 automatically adds the Ethereum signed message prefix)
+      const signature = await signerWallet.signMessage(getBytes(messageHash))
+
+      return signature
+    },
+    []
+  )
+
+  /**
    * Claim red packet for a check-in
    */
   const claimRedPacket = useCallback(
@@ -312,7 +351,53 @@ export function useStaking() {
           throw new Error('Please connect your wallet first')
         }
 
-        const tx = await contract.claimRedPacket(stakeId, checkinIndex)
+        // Get user address
+        const runner = contract.runner as { getAddress?: () => Promise<string> } | null
+        const userAddress = await runner?.getAddress?.()
+        if (!userAddress) {
+          throw new Error('Failed to get user address')
+        }
+
+        // Get max red packet amount for this stake
+        const readContract = getStakingContract()
+        const maxAmount = await readContract?.getMaxRedPacketAmount(stakeId)
+        if (!maxAmount || maxAmount === BigInt(0)) {
+          throw new Error('No red packet available for this stake')
+        }
+
+        // Generate random amount between MIN_RED_PACKET_RATE and maxAmount
+        // For simplicity, use a random percentage of maxAmount (50% - 100%)
+        const randomPercent = 50 + Math.floor(Math.random() * 51) // 50-100
+        const amount = (maxAmount * BigInt(randomPercent)) / BigInt(100)
+
+        // Set expiry to 24 hours from now
+        const expiry = Math.floor(Date.now() / 1000) + 24 * 3600
+
+        // Generate signature
+        const signature = await generateRedPacketSignature(
+          stakeId,
+          checkinIndex,
+          amount,
+          expiry,
+          userAddress
+        )
+
+        console.log('Red packet claim params:', {
+          stakeId,
+          checkinIndex,
+          amount: amount.toString(),
+          expiry,
+          signature,
+        })
+
+        // Call contract with all required parameters
+        const tx = await contract.claimRedPacket(
+          stakeId,
+          checkinIndex,
+          amount,
+          expiry,
+          signature
+        )
 
         showSuccess('Claiming red packet...')
 
@@ -320,7 +405,7 @@ export function useStaking() {
         console.log('Claim receipt:', receipt)
 
         // Find the RedPacketClaimed event to get the amount
-        let amountEth = '0'
+        let amountEth = formatEther(amount)
 
         try {
           // Method 1: Try fragment
@@ -364,7 +449,7 @@ export function useStaking() {
         setLoading(false)
       }
     },
-    [showSuccess, showError]
+    [showSuccess, showError, generateRedPacketSignature]
   )
 
   /**
