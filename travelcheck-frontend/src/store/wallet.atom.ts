@@ -4,7 +4,7 @@
  */
 
 import { formatAddress, formatAmount } from '@/utils/format'
-import { getBalance, connectWallet as web3ConnectWallet } from '@/utils/web3'
+import { getBalance, connectWallet as web3ConnectWallet, ensureCorrectNetwork } from '@/utils/web3'
 import { atom } from 'jotai'
 
 /**
@@ -77,7 +77,13 @@ export const connectWalletAtom = atom(null, async (get, set) => {
   })
 
   try {
+    // 1. 连接钱包
     const address = await web3ConnectWallet()
+
+    // 2. 确保连接到正确的网络(Hardhat Local - Chain ID 1337)
+    await ensureCorrectNetwork()
+
+    // 3. 获取余额
     const balance = await getBalance(address)
 
     set(walletAtom, {
