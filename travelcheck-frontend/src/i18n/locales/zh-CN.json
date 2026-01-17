@@ -38,7 +38,8 @@
     "unclaimed": "未领取",
     "chancesRemaining": "剩余机会",
     "progress": "进度",
-    "max": "最高"
+    "max": "最高",
+    "checkIn": "打卡"
   },
   "nav": {
     "home": "首页",
