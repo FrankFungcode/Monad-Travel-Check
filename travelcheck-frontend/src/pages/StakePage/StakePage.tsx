@@ -111,7 +111,7 @@ export function StakePage() {
                   required
                 />
                 <p className="text-xs text-text-muted mt-1">
-                  {t("stake.minMaxAmount")} (0.0001 - 1000 ETH)
+                  {t("stake.minMaxAmount")} (0.0001 - 1000 MON)
                 </p>
               </div>
 

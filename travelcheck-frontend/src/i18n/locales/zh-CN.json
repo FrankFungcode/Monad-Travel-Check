@@ -104,7 +104,7 @@
     "attraction": "景点",
     "stakeAmount": "质押金额 (MON)",
     "enterAmount": "输入金额 (1-1000)",
-    "minMaxAmount": "最小: 1 MON, 最大: 1000 MON",
+    "minMaxAmount": "最小: 0.01 MON, 最大: 1000 MON",
     "milestone": "里程碑 (景点数)",
     "lockMode": "锁定模式",
     "sealed": "封闭式",

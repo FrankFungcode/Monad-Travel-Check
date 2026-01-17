@@ -106,7 +106,7 @@
     "attraction": "Attraction",
     "stakeAmount": "Stake Amount (MON)",
     "enterAmount": "Enter amount (1-1000)",
-    "minMaxAmount": "Minimum: 1 MON, Maximum: 1000 MON",
+    "minMaxAmount": "Minimum: 0.01 MON, Maximum: 1000 MON",
     "milestone": "Milestone (Attractions)",
     "lockMode": "Lock Mode",
     "sealed": "Sealed",
