@@ -38,6 +38,7 @@ export function WalletConnect({ className, showBalance = true }: WalletConnectPr
     isConnecting,
     connect,
     disconnect,
+    refresh,
   } = useWallet()
   const [showDropdown, setShowDropdown] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
@@ -61,6 +62,18 @@ export function WalletConnect({ className, showBalance = true }: WalletConnectPr
     disconnect()
     setShowDropdown(false)
   }, [disconnect])
+
+  /**
+   * Handle refresh balance
+   */
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refresh()
+      console.log('✅ 余额刷新成功')
+    } catch (error) {
+      console.error('刷新余额失败:', error)
+    }
+  }, [refresh])
 
   /**
    * Handle copy address
@@ -208,6 +221,34 @@ export function WalletConnect({ className, showBalance = true }: WalletConnectPr
               />
             </svg>
             <span className="text-white">{copySuccess ? t('common.copied') : t('common.copyAddress')}</span>
+          </button>
+
+          {/* Refresh balance option */}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className={clsx(
+              'w-full px-4 py-3 text-left text-sm',
+              'flex items-center gap-2',
+              'hover:bg-background-dark transition-colors'
+            )}
+          >
+            <svg
+              role="img"
+              aria-hidden="true"
+              className="w-4 h-4 text-text-muted"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span className="text-white">刷新余额</span>
           </button>
 
           {/* Disconnect option */}
