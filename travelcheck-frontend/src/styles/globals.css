@@ -1,7 +1,13 @@
+/**
+ * @file 全局样式
+ * @description Tailwind指令和全局CSS规则
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* 全局基础样式 */
 @layer base {
   * {
     @apply box-border;
@@ -19,6 +25,7 @@
     @apply h-full;
   }
 
+  /* 滚动条样式 */
   ::-webkit-scrollbar {
     @apply w-2;
   }
@@ -36,6 +43,7 @@
   }
 }
 
+/* 自定义组件样式 */
 @layer components {
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
@@ -62,6 +70,7 @@
   }
 }
 
+/* 工具类 */
 @layer utilities {
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent;

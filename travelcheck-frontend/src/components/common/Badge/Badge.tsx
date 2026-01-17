@@ -1,6 +1,14 @@
+/**
+ * @file Badge Component
+ * @description Small label component for displaying status or tags
+ */
+
 import { clsx } from 'clsx'
 import type { ReactNode } from 'react'
 
+/**
+ * Badge variant types
+ */
 export type BadgeVariant =
   | 'default'
   | 'primary'
@@ -10,13 +18,32 @@ export type BadgeVariant =
   | 'info'
   | 'outline'
 
+/**
+ * Badge component props
+ */
 export interface BadgeProps {
+  /** Badge variant */
   variant?: BadgeVariant
+  /** Badge content */
   children: ReactNode
+  /** Custom class name */
   className?: string
+  /** Badge size */
   size?: 'sm' | 'md' | 'lg'
 }
 
+/**
+ * Badge Component
+ *
+ * @example
+ * <Badge variant="primary">New</Badge>
+ *
+ * @example
+ * <Badge variant="success">Active</Badge>
+ *
+ * @example
+ * <Badge variant="danger">Expired</Badge>
+ */
 export function Badge({ variant = 'default', size = 'sm', children, className }: BadgeProps) {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-full'
 

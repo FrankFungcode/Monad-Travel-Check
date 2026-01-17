@@ -1,15 +1,46 @@
+/**
+ * @file Button Component
+ * @description Reusable button component with multiple variants
+ */
+
 import type { ButtonVariant } from '@/types/components.types'
 import { clsx } from 'clsx'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
+/**
+ * Button component props
+ */
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Button variant style */
   variant?: ButtonVariant
+  /** Button size */
   size?: 'sm' | 'md' | 'lg'
+  /** Full width button */
   fullWidth?: boolean
+  /** Loading state */
   loading?: boolean
+  /** Button content */
   children: ReactNode
 }
 
+/**
+ * Button Component
+ *
+ * @example
+ * <Button variant="primary" onClick={() => console.log('clicked')}>
+ *   Click me
+ * </Button>
+ *
+ * @example
+ * <Button variant="danger" disabled>
+ *   Disabled Button
+ * </Button>
+ *
+ * @example
+ * <Button variant="outline" loading>
+ *   Loading...
+ * </Button>
+ */
 export function Button({
   variant = 'primary',
   size = 'md',

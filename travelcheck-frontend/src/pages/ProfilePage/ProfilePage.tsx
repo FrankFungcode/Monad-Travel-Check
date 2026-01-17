@@ -1,3 +1,8 @@
+/**
+ * @file ProfilePage Component
+ * @description User profile and account management page
+ */
+
 import Achievement from "@/components/common/Achievement";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -7,10 +12,14 @@ import { formatAmount } from "@/utils/format";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+/**
+ * ProfilePage Component
+ */
 export function ProfilePage() {
   const { t } = useTranslation();
   const { address } = useWallet();
 
+  // Mock user data
   const [user] = useState<User>({
     id: "user1",
     walletAddress: address || "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
@@ -57,6 +66,7 @@ export function ProfilePage() {
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">
           {t("profile.title")}
@@ -64,9 +74,11 @@ export function ProfilePage() {
         <p className="text-text-muted">{t("profile.subtitle")}</p>
       </div>
 
+      {/* Profile Card */}
       <Card>
         <Card.Body>
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            {/* Avatar */}
             <div className="flex-shrink-0">
               <div className="relative">
                 <img
@@ -106,6 +118,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* User Info */}
             <div className="flex-1 text-center md:text-left">
               <h2 className="text-2xl font-bold text-white mb-2">
                 {user.nickname || "Anonymous"}
@@ -147,6 +160,7 @@ export function ProfilePage() {
               </div>
             </div>
 
+            {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-4 md:gap-6">
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
@@ -177,6 +191,7 @@ export function ProfilePage() {
         </Card.Body>
       </Card>
 
+      {/* Statistics Grid */}
       <div>
         <h2 className="text-xl font-semibold text-white mb-4">
           {t("profile.statistics")}
@@ -282,6 +297,7 @@ export function ProfilePage() {
         </div>
       </div>
 
+      {/* Activity Summary */}
       <Card>
         <Card.Header>
           <h2 className="text-xl font-semibold text-white">{t('achievementWall.title')}</h2>

@@ -11,7 +11,7 @@ export interface Achievement {
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   unlocked: boolean;
   unlockedAt?: string;
-  progress?: number;
+  progress?: number; // 0-100
   maxProgress?: number;
 }
 
@@ -78,21 +78,21 @@ export default function AchievementBadge({
     switch (size) {
       case 'small':
         return {
-          container: 'w-20 h-20',
+          container: 'size-20',
           icon: 'text-4xl',
-          badge: 'w-5 h-5 text-[10px]',
+          badge: 'size-5 text-[10px]',
         };
       case 'medium':
         return {
-          container: 'w-28 h-28',
+          container: 'size-28',
           icon: 'text-6xl',
-          badge: 'w-6 h-6 text-xs',
+          badge: 'size-6 text-xs',
         };
       case 'large':
         return {
-          container: 'w-36 h-36',
+          container: 'size-36',
           icon: 'text-8xl',
-          badge: 'w-8 h-8 text-sm',
+          badge: 'size-8 text-sm',
         };
     }
   };
@@ -114,7 +114,9 @@ export default function AchievementBadge({
 
   return (
     <div className="flex flex-col items-center gap-3">
+      {/* 徽章容器 */}
       <div className="relative">
+        {/* 徽章圆形 */}
         <div
           className={`${sizes.container} rounded-full border-4 ${
             achievement.unlocked
@@ -124,12 +126,16 @@ export default function AchievementBadge({
             achievement.unlocked ? 'hover:scale-110' : ''
           } relative overflow-hidden`}
         >
+          {/* 未解锁遮罩 */}
           {!achievement.unlocked && (
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-gray-600 text-4xl">🔒</span>
+              <span className="material-symbols-outlined text-gray-600 text-4xl">
+                lock
+              </span>
             </div>
           )}
 
+          {/* 图标 */}
           <span
             className={`${sizes.icon} ${
               achievement.unlocked ? '' : 'opacity-30 grayscale'
@@ -139,6 +145,7 @@ export default function AchievementBadge({
           </span>
         </div>
 
+        {/* 稀有度标签 */}
         {achievement.unlocked && size !== 'small' && (
           <div
             className={`absolute -top-3 -right-3 z-10 px-2 py-0.5 rounded-full border ${colors.border} bg-background-dark/90 ${colors.text} text-[10px] font-bold whitespace-nowrap`}
@@ -147,9 +154,10 @@ export default function AchievementBadge({
           </div>
         )}
 
+        {/* 进度圆环 */}
         {!achievement.unlocked && showProgress && achievement.progress !== undefined && (
           <svg
-            className="absolute inset-0 w-full h-full -rotate-90"
+            className="absolute inset-0 size-full -rotate-90"
             viewBox="0 0 100 100"
           >
             <circle
@@ -177,6 +185,7 @@ export default function AchievementBadge({
         )}
       </div>
 
+      {/* 徽章信息 */}
       <div className="text-center max-w-[120px]">
         <h4
           className={`text-sm font-bold ${

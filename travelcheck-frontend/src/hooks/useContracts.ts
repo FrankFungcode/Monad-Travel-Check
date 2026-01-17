@@ -1,7 +1,15 @@
+/**
+ * @file useContracts Hook
+ * @description Custom hook for getting contract instances
+ */
+
 import { useMemo } from 'react'
 import { BrowserProvider, Contract, JsonRpcSigner } from 'ethers'
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '@/constants/contracts'
 
+/**
+ * Get the Ethereum provider from window
+ */
 function getEthereumProvider() {
   if (typeof window === 'undefined') {
     return null
@@ -9,6 +17,9 @@ function getEthereumProvider() {
   return (window as typeof window & { ethereum?: unknown }).ethereum || null
 }
 
+/**
+ * Get a signer from the browser provider
+ */
 export async function getSigner(): Promise<JsonRpcSigner | null> {
   const ethereum = getEthereumProvider()
   if (!ethereum) {
@@ -18,6 +29,9 @@ export async function getSigner(): Promise<JsonRpcSigner | null> {
   return provider.getSigner()
 }
 
+/**
+ * Get a read-only provider
+ */
 export function getProvider(): BrowserProvider | null {
   const ethereum = getEthereumProvider()
   if (!ethereum) {
@@ -26,12 +40,18 @@ export function getProvider(): BrowserProvider | null {
   return new BrowserProvider(ethereum as never)
 }
 
+/**
+ * Contract instances type
+ */
 export interface ContractInstances {
   staking: Contract | null
   attraction: Contract | null
   badge: Contract | null
 }
 
+/**
+ * Get contract instance (read-only)
+ */
 export function getStakingContract(): Contract | null {
   const provider = getProvider()
   if (!provider) return null
@@ -62,6 +82,9 @@ export function getBadgeContract(): Contract | null {
   )
 }
 
+/**
+ * Get contract instance with signer (for write operations)
+ */
 export async function getStakingContractWithSigner(): Promise<Contract | null> {
   const signer = await getSigner()
   if (!signer) return null
@@ -92,6 +115,14 @@ export async function getBadgeContractWithSigner(): Promise<Contract | null> {
   )
 }
 
+/**
+ * Custom hook for getting contract instances (read-only)
+ *
+ * @returns Contract instances
+ *
+ * @example
+ * const { staking, attraction, badge } = useContracts()
+ */
 export function useContracts(): ContractInstances {
   const contracts = useMemo(() => {
     return {

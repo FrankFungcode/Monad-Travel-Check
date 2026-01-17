@@ -1,6 +1,19 @@
+/**
+ * @file Theme Configurations
+ * @description Predefined theme color schemes for the application
+ */
+
 import type { Theme, ThemeId } from '@/types/theme.types'
 
+/**
+ * Available themes for the application
+ * Each theme is designed to evoke different travel experiences
+ */
 export const THEMES: Record<ThemeId, Theme> = {
+  /**
+   * Forest Green - Fresh and natural
+   * Evokes hiking, forest trails, and nature exploration
+   */
   forest: {
     id: 'forest',
     name: 'Forest Green',
@@ -17,6 +30,10 @@ export const THEMES: Record<ThemeId, Theme> = {
     },
   },
 
+  /**
+   * Ocean Blue - Deep and serene
+   * Evokes ocean views, beaches, and coastal adventures
+   */
   ocean: {
     id: 'ocean',
     name: 'Ocean Blue',
@@ -33,6 +50,10 @@ export const THEMES: Record<ThemeId, Theme> = {
     },
   },
 
+  /**
+   * Sunset Orange - Warm and vibrant
+   * Evokes desert sunsets, golden hour, and warm destinations
+   */
   sunset: {
     id: 'sunset',
     name: 'Sunset Orange',
@@ -49,6 +70,10 @@ export const THEMES: Record<ThemeId, Theme> = {
     },
   },
 
+  /**
+   * Sakura Pink - Romantic and gentle
+   * Evokes cherry blossoms, spring travels, and cultural experiences
+   */
   sakura: {
     id: 'sakura',
     name: 'Sakura Pink',
@@ -65,6 +90,10 @@ export const THEMES: Record<ThemeId, Theme> = {
     },
   },
 
+  /**
+   * Violet Purple - Mysterious and elegant
+   * Evokes luxury travel, night markets, and exotic destinations
+   */
   violet: {
     id: 'violet',
     name: 'Violet Purple',
@@ -82,6 +111,12 @@ export const THEMES: Record<ThemeId, Theme> = {
   },
 }
 
+/**
+ * Default theme ID
+ */
 export const DEFAULT_THEME_ID: ThemeId = 'ocean'
 
+/**
+ * Local storage key for theme preference
+ */
 export const THEME_STORAGE_KEY = 'travelcheck-theme'

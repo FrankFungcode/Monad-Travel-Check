@@ -1,12 +1,17 @@
-const { merge } = require('webpack-merge')
-const common = require('./webpack.common.js')
+/**
+ * @file Webpack开发环境配置
+ * @description 开发服务器和热更新配置
+ */
+
+const { merge } = require("webpack-merge");
+const common = require("./webpack.common.js");
 
 module.exports = merge(common, {
-  mode: 'development',
-  devtool: 'inline-source-map',
+  mode: "development",
+  devtool: "inline-source-map",
 
   devServer: {
-    static: './dist',
+    static: "./dist",
     hot: true,
     port: 3001,
     open: false,
@@ -15,12 +20,12 @@ module.exports = merge(common, {
     client: {
       overlay: {
         errors: true,
-        warnings: false,
-      },
-    },
+        warnings: false
+      }
+    }
   },
 
   optimization: {
-    runtimeChunk: 'single',
-  },
-})
+    runtimeChunk: "single"
+  }
+});

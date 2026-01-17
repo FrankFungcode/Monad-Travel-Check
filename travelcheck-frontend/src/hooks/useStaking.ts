@@ -1,3 +1,8 @@
+/**
+ * @file useStaking Hook
+ * @description Custom hook for staking contract operations
+ */
+
 import { useState, useCallback } from 'react'
 import { parseEther, formatEther } from 'ethers'
 import { useSetAtom } from 'jotai'
@@ -16,22 +21,26 @@ import {
   type LocalCheckin,
 } from '@/services/db.service'
 
+// Stake type enum (matches contract)
 export enum StakeType {
   DAILY = 0,
   ATTRACTION = 1,
 }
 
+// Stake mode enum (matches contract)
 export enum StakeMode {
   SEALED = 0,
   ANYTIME = 1,
 }
 
+// Stake status enum (matches contract)
 export enum StakeStatus {
   ACTIVE = 0,
   COMPLETED = 1,
   WITHDRAWN = 2,
 }
 
+// Stake data from chain
 export interface ChainStake {
   user: string
   stakeType: number
@@ -48,6 +57,7 @@ export interface ChainStake {
   withdrawnAt: bigint
 }
 
+// Check-in record from chain
 export interface ChainCheckinRecord {
   timestamp: bigint
   contentHash: string
@@ -55,6 +65,9 @@ export interface ChainCheckinRecord {
   longitude: bigint
 }
 
+/**
+ * Convert chain stake to local stake format
+ */
 function chainStakeToLocal(stakeId: string, stake: ChainStake): LocalStake {
   return {
     id: stakeId,
@@ -73,11 +86,17 @@ function chainStakeToLocal(stakeId: string, stake: ChainStake): LocalStake {
   }
 }
 
+/**
+ * Custom hook for staking operations
+ */
 export function useStaking() {
   const [loading, setLoading] = useState(false)
   const showSuccess = useSetAtom(showSuccessToastAtom)
   const showError = useSetAtom(showErrorToastAtom)
 
+  /**
+   * Create a new stake
+   */
   const createStake = useCallback(
     async (
       stakeType: StakeType,
@@ -100,26 +119,37 @@ export function useStaking() {
         showSuccess('Transaction submitted, waiting for confirmation...')
 
         const receipt = await tx.wait()
+        console.log('Transaction Receipt:', receipt) // Debug log
 
+        // Method 1: Try to find the StakeCreated event from logs
         let stakeId = '0'
 
         try {
+          // Debug logs for events
+          console.log('Receipt logs:', receipt.logs)
+
           const event = receipt.logs.find(
             (log: { fragment?: { name: string } }) => log.fragment?.name === 'StakeCreated'
           )
 
           if (event && event.args && event.args[0]) {
             stakeId = event.args[0].toString()
+            console.log('Found StakeId from event fragment:', stakeId)
           } else {
+            console.log('Event fragment not found, trying manual parsing...')
+            // Fallback for when fragment is missing (common in some envs)
+            // Manually parse if contract interface is available
             for (const log of receipt.logs) {
               try {
                 const parsed = contract.interface.parseLog(log)
+                console.log('Parsed log:', parsed) // Debug log
                 if (parsed && parsed.name === 'StakeCreated') {
                   stakeId = parsed.args[0].toString()
+                  console.log('Found StakeId from parsed log:', stakeId)
                   break
                 }
               } catch (e) {
-                // Ignore parsing errors
+                // Ignore parsing errors for non-matching logs
               }
             }
           }
@@ -127,13 +157,17 @@ export function useStaking() {
           console.warn('Error parsing logs:', e)
         }
 
-        if (!stakeId || (stakeId === '0' && receipt.logs.length > 0)) {
+        // Method 3: Direct Topic Parsing (Robust Fallback)
+        // Explicitly check for StakeCreated event signature hash observed in logs
+        // Signature: StakeCreated(uint256,address,uint8,uint256,uint256,uint8)
+        if (!stakeId || stakeId === '0') {
           const STAKE_CREATED_TOPIC = '0x5c37d87e2c15979bf7deed864258000565917a14d1f7f534bf4b646317f66786'
 
           for (const log of receipt.logs) {
             if (log.topics && log.topics[0] === STAKE_CREATED_TOPIC && log.topics.length >= 2) {
               try {
                 stakeId = BigInt(log.topics[1]).toString()
+                console.log('Found StakeId from raw topic:', stakeId)
                 break
               } catch (e) {
                 console.warn('Error parsing topic:', e)
@@ -142,22 +176,33 @@ export function useStaking() {
           }
         }
 
+        // Method 4: Fallback to fetching user's last stake
         if (!stakeId || (stakeId === '0' && receipt.logs.length > 0)) {
+          console.log('Trying fallback method to get StakeId...')
+          // We try to get the signer address to fetch stakes
           const runner = contract.runner as { getAddress?: () => Promise<string> } | null
           const signerAddress = await runner?.getAddress?.()
+          console.log('Signer address for fallback:', signerAddress)
 
           if (signerAddress) {
             const userStakes = await contract.getUserStakes(signerAddress)
+            console.log('User stakes fetched:', userStakes)
             if (userStakes && userStakes.length > 0) {
+              // The new stake should be the last one
               stakeId = userStakes[userStakes.length - 1].toString()
+              console.log('Found StakeId from fallback:', stakeId)
             }
           }
         }
 
+        console.log('Final StakeId to return:', stakeId)
+
+        // Fetch and cache the stake data (non-blocking)
         try {
           await refreshStake(stakeId)
         } catch (refreshError) {
           console.warn('Failed to refresh stake data, but continuing:', refreshError)
+          // Don't block the return even if refresh fails
         }
 
         showSuccess(`Stake created successfully! ID: ${stakeId}`)
@@ -174,6 +219,9 @@ export function useStaking() {
     [showSuccess, showError]
   )
 
+  /**
+   * Check in for a stake
+   */
   const checkIn = useCallback(
     async (
       stakeId: string,
@@ -188,23 +236,31 @@ export function useStaking() {
           throw new Error('Please connect your wallet first')
         }
 
+        // Calculate content hash
         const contentHash = await calculateContentHash(
           JSON.stringify({ content, images, timestamp: Date.now() })
         )
 
+        // Convert location to contract format (×10^6)
         const latitude = location ? BigInt(Math.round(location.lat * 1e6)) : BigInt(0)
         const longitude = location ? BigInt(Math.round(location.lng * 1e6)) : BigInt(0)
 
+        console.log('Check-in params:', { stakeId, contentHash, latitude: latitude.toString(), longitude: longitude.toString() })
+
         const tx = await contract.checkIn(stakeId, contentHash, latitude, longitude)
 
+        console.log('Check-in transaction sent:', tx.hash)
         showSuccess('Check-in submitted, waiting for confirmation...')
 
         const receipt = await tx.wait()
+        console.log('Check-in confirmed:', receipt)
 
+        // Get current check-in count to determine index
         const readContract = getStakingContract()
         const checkinCount = await readContract?.getCheckinCount(stakeId)
         const checkinIndex = Number(checkinCount) - 1
 
+        // Save check-in to IndexedDB (non-blocking)
         try {
           const localCheckin: LocalCheckin = {
             id: generateCheckinId(stakeId, checkinIndex),
@@ -222,6 +278,7 @@ export function useStaking() {
           console.warn('Failed to save check-in to local DB:', dbError)
         }
 
+        // Refresh stake data (non-blocking)
         try {
           await refreshStake(stakeId)
         } catch (refreshError) {
@@ -229,6 +286,7 @@ export function useStaking() {
         }
 
         showSuccess('打卡成功！')
+        console.log('Check-in completed successfully, returning true')
         return true
       } catch (error) {
         console.error('Check-in error:', error)
@@ -242,6 +300,9 @@ export function useStaking() {
     [showSuccess, showError]
   )
 
+  /**
+   * Claim red packet for a check-in
+   */
   const claimRedPacket = useCallback(
     async (stakeId: string, checkinIndex: number): Promise<string | null> => {
       setLoading(true)
@@ -256,22 +317,30 @@ export function useStaking() {
         showSuccess('Claiming red packet...')
 
         const receipt = await tx.wait()
+        console.log('Claim receipt:', receipt)
 
+        // Find the RedPacketClaimed event to get the amount
         let amountEth = '0'
 
         try {
+          // Method 1: Try fragment
           const event = receipt.logs.find(
             (log: { fragment?: { name: string } }) => log.fragment?.name === 'RedPacketClaimed'
           )
 
           if (event?.args?.[3]) {
             amountEth = formatEther(event.args[3])
+            console.log('Amount from fragment:', amountEth)
           } else {
+            // Method 2: Manual parsing
+            console.log('Fragment not found, trying manual parsing...')
             for (const log of receipt.logs) {
               try {
                 const parsed = contract.interface.parseLog(log)
+                console.log('Parsed log:', parsed)
                 if (parsed && parsed.name === 'RedPacketClaimed') {
                   amountEth = formatEther(parsed.args[3])
+                  console.log('Amount from parsed log:', amountEth)
                   break
                 }
               } catch (e) {
@@ -283,6 +352,7 @@ export function useStaking() {
           console.warn('Error parsing red packet amount:', e)
         }
 
+        console.log('Final claimed amount:', amountEth)
         showSuccess(`红包领取成功！金额: ${amountEth} ETH`)
         return amountEth
       } catch (error) {
@@ -297,6 +367,9 @@ export function useStaking() {
     [showSuccess, showError]
   )
 
+  /**
+   * Withdraw stake and interest
+   */
   const withdraw = useCallback(
     async (stakeId: string): Promise<string | null> => {
       setLoading(true)
@@ -312,12 +385,14 @@ export function useStaking() {
 
         const receipt = await tx.wait()
 
+        // Find the StakeWithdrawn event to get the total amount
         const event = receipt.logs.find(
           (log: { fragment?: { name: string } }) => log.fragment?.name === 'StakeWithdrawn'
         )
         const totalAmount = event?.args?.[1]
         const amountEth = totalAmount ? formatEther(totalAmount) : '0'
 
+        // Refresh stake data
         await refreshStake(stakeId)
 
         showSuccess(`Withdrawal successful! Total: ${amountEth} ETH`)
@@ -333,6 +408,9 @@ export function useStaking() {
     [showSuccess, showError]
   )
 
+  /**
+   * Get stake data from chain
+   */
   const getStake = useCallback(async (stakeId: string): Promise<LocalStake | null> => {
     try {
       const contract = getStakingContract()
@@ -346,6 +424,9 @@ export function useStaking() {
     }
   }, [])
 
+  /**
+   * Refresh and cache stake data
+   */
   const refreshStake = useCallback(async (stakeId: string): Promise<LocalStake | null> => {
     const stake = await getStake(stakeId)
     if (stake) {
@@ -354,6 +435,9 @@ export function useStaking() {
     return stake
   }, [getStake])
 
+  /**
+   * Get user's stake IDs
+   */
   const getUserStakes = useCallback(async (userAddress: string): Promise<string[]> => {
     try {
       const contract = getStakingContract()
@@ -367,6 +451,9 @@ export function useStaking() {
     }
   }, [])
 
+  /**
+   * Get check-in records from chain
+   */
   const getCheckinRecords = useCallback(
     async (stakeId: string): Promise<ChainCheckinRecord[]> => {
       try {
@@ -383,10 +470,16 @@ export function useStaking() {
     []
   )
 
+  /**
+   * Get local check-in content (from IndexedDB)
+   */
   const getLocalCheckins = useCallback(async (stakeId: string): Promise<LocalCheckin[]> => {
     return getCheckinsByStake(stakeId)
   }, [])
 
+  /**
+   * Check if red packet is claimed for a check-in
+   */
   const isRedPacketClaimed = useCallback(
     async (stakeId: string, checkinIndex: number): Promise<boolean> => {
       try {
@@ -402,6 +495,9 @@ export function useStaking() {
     []
   )
 
+  /**
+   * Get max red packet amount for current progress
+   */
   const getMaxRedPacketAmount = useCallback(async (stakeId: string): Promise<string> => {
     try {
       const contract = getStakingContract()
@@ -415,6 +511,9 @@ export function useStaking() {
     }
   }, [])
 
+  /**
+   * Calculate current interest
+   */
   const calculateInterest = useCallback(async (stakeId: string): Promise<string> => {
     try {
       const contract = getStakingContract()
@@ -428,6 +527,9 @@ export function useStaking() {
     }
   }, [])
 
+  /**
+   * Get total claimed red packet amount for a stake
+   */
   const getTotalRedPacketClaimed = useCallback(async (stakeId: string): Promise<string> => {
     try {
       const contract = getStakingContract()
@@ -443,10 +545,12 @@ export function useStaking() {
 
   return {
     loading,
+    // Write operations
     createStake,
     checkIn,
     claimRedPacket,
     withdraw,
+    // Read operations
     getStake,
     refreshStake,
     getUserStakes,

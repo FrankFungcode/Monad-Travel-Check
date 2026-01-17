@@ -8,7 +8,10 @@
     "build": "webpack --config webpack/webpack.prod.js",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "keywords": [
     "blockchain",
@@ -31,12 +34,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.4.1",
+    "@playwright/test": "^1.57.0",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "autoprefixer": "^10.4.16",
     "css-loader": "^6.8.1",
     "html-webpack-plugin": "^5.6.0",
     "mini-css-extract-plugin": "^2.7.6",
+    "playwright": "^1.57.0",
     "postcss": "^8.4.32",
     "postcss-loader": "^7.3.3",
     "style-loader": "^3.3.3",
@@ -44,9 +49,10 @@
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
     "webpack": "^5.89.0",
+    "webpack-bundle-analyzer": "^5.1.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
     "webpack-merge": "^5.10.0"
   },
-  "packageManager": "pnpm@10.26.2"
+  "packageManager": "pnpm@10.26.2+sha512.0e308ff2005fc7410366f154f625f6631ab2b16b1d2e70238444dd6ae9d630a8482d92a451144debc492416896ed16f7b114a86ec68b8404b2443869e68ffda6"
 }

@@ -1,3 +1,8 @@
+/**
+ * @file Layout Component
+ * @description Main layout with navigation and header
+ */
+
 import { WalletConnect } from '@/components/business/WalletConnect'
 import { ThemeBackground } from '@/components/common/ThemeBackground'
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
@@ -6,10 +11,22 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
+/**
+ * Layout component props
+ */
 export interface LayoutProps {
+  /** Page content */
   children: ReactNode
 }
 
+/**
+ * Layout Component
+ *
+ * @example
+ * <Layout>
+ *   <YourPageContent />
+ * </Layout>
+ */
 export function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const { t, i18n } = useTranslation()
@@ -30,56 +47,24 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background-dark text-white relative overflow-hidden">
+      {/* Theme Background Pattern */}
       <ThemeBackground className="fixed inset-0 z-0 pointer-events-none text-primary" />
 
+      {/* Content Container */}
       <div className="relative z-10">
+        {/* Header */}
         <header className="sticky top-0 z-40 bg-background-dark/95 backdrop-blur">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-12">
-                <Link to="/" className="flex items-center gap-2">
-                  <span className="text-2xl">✈️</span>
-                  <span className="text-xl font-bold text-white">{t('common.appName')}</span>
-                </Link>
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo and Navigation */}
+            <div className="flex items-center gap-12">
+              <Link to="/" className="flex items-center gap-2">
+                <span className="text-2xl">✈️</span>
+                <span className="text-xl font-bold text-white">{t('common.appName')}</span>
+              </Link>
 
-                <nav className="hidden md:flex items-center gap-8">
-                  {navItems.map((item) => {
-                    const isActive = location.pathname === item.path
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={clsx(
-                          'font-medium transition-colors text-sm',
-                          isActive ? 'text-white' : 'text-gray-400 hover:text-white'
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    )
-                  })}
-                </nav>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <ThemeSwitcher />
-
-                <button
-                  onClick={toggleLanguage}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-400 hover:text-white transition-colors border border-gray-700 rounded-lg hover:border-gray-500"
-                  type="button"
-                >
-                  {i18n.language === 'zh-CN' ? 'EN' : '中文'}
-                </button>
-
-                <WalletConnect />
-              </div>
-            </div>
-          </div>
-
-          <div className="md:hidden border-t border-border-dark">
-            <div className="container mx-auto px-6">
-              <div className="flex items-center gap-1 overflow-x-auto py-2">
+              {/* Navigation Items - Horizontal */}
+              <nav className="hidden md:flex items-center gap-8">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path
                   return (
@@ -87,22 +72,66 @@ export function Layout({ children }: LayoutProps) {
                       key={item.path}
                       to={item.path}
                       className={clsx(
-                        'flex items-center gap-2 px-4 py-2 font-medium transition-colors text-sm whitespace-nowrap rounded-lg',
-                        isActive ? 'bg-primary/20 text-primary' : 'text-text-muted hover:text-white'
+                        'font-medium transition-colors text-sm',
+                        isActive ? 'text-white' : 'text-gray-400 hover:text-white'
                       )}
                     >
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
+                      {item.label}
                     </Link>
                   )
                 })}
-              </div>
+              </nav>
+            </div>
+
+            {/* Right Side: Theme + Language Switcher + Wallet */}
+            <div className="flex items-center gap-4">
+              {/* Theme Switcher */}
+              <ThemeSwitcher />
+
+              {/* Language Switcher */}
+              <button
+                onClick={toggleLanguage}
+                className="px-3 py-1.5 text-sm font-medium text-gray-400 hover:text-white transition-colors border border-gray-700 rounded-lg hover:border-gray-500"
+                type="button"
+              >
+                {i18n.language === 'zh-CN' ? 'EN' : '中文'}
+              </button>
+
+              {/* Wallet Connect */}
+              <WalletConnect />
             </div>
           </div>
-        </header>
+        </div>
 
+        {/* Mobile Navigation */}
+        <div className="md:hidden border-t border-border-dark">
+          <div className="container mx-auto px-6">
+            <div className="flex items-center gap-1 overflow-x-auto py-2">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={clsx(
+                      'flex items-center gap-2 px-4 py-2 font-medium transition-colors text-sm whitespace-nowrap rounded-lg',
+                      isActive ? 'bg-primary/20 text-primary' : 'text-text-muted hover:text-white'
+                    )}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </header>
+
+        {/* Main Content */}
         <main className="container mx-auto px-6 py-8">{children}</main>
 
+        {/* Footer */}
         <footer className="mt-16 border-t-2 border-border-dark bg-card-dark py-8">
           <div className="container mx-auto px-6 text-center text-text-muted text-sm">
             <p>{t('footer.copyright')}</p>

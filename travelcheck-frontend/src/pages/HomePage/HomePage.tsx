@@ -1,3 +1,8 @@
+/**
+ * @file HomePage Component
+ * @description Landing page matching the design mockup
+ */
+
 import { Badge } from '@/components/common/Badge'
 import { Button } from '@/components/common/Button'
 import { Card } from '@/components/common/Card'
@@ -5,10 +10,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+/**
+ * HomePage Component - Matches design mockup
+ */
 export function HomePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
+  // Mock global stats
   const [globalStats] = useState({
     participants: 12405,
     participantsGrowth: 5,
@@ -17,11 +26,14 @@ export function HomePage() {
     activeToday: 2300,
   })
 
+  // Mock user streak
   const [userStreak] = useState(5)
 
   return (
     <div className="space-y-12">
+      {/* Hero Section */}
       <div className="text-center space-y-6 py-12">
+        {/* Live on Mainnet Badge */}
         <div className="flex justify-center">
           <Badge variant="success" size="md" className="inline-flex items-center gap-2">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -29,18 +41,22 @@ export function HomePage() {
           </Badge>
         </div>
 
+        {/* Main Title */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
           {t('home.title').split('，')[0]}，
           <br />
           <span className="text-primary">{t('home.title').split('，')[1]}</span>
         </h1>
 
+        {/* Subtitle */}
         <p className="text-lg md:text-xl text-text-muted max-w-3xl mx-auto">
           {t('home.subtitle')}
         </p>
       </div>
 
+      {/* Main Action Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Daily Task Check-in Card */}
         <Card className="overflow-hidden hover:border-primary transition-all cursor-pointer group">
           <div
             className="relative h-64 bg-gradient-to-br from-teal-900 to-teal-700 -m-4 mb-4"
@@ -49,9 +65,13 @@ export function HomePage() {
             role="button"
             tabIndex={0}
           >
+            {/* Background Image Placeholder */}
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800')] bg-cover bg-center opacity-40" />
+
+            {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-background-dark/90 to-transparent" />
 
+            {/* Streak Badge */}
             <div className="absolute top-4 left-4">
               <Badge variant="success" className="flex items-center gap-2">
                 <span>🔥</span>
@@ -59,6 +79,7 @@ export function HomePage() {
               </Badge>
             </div>
 
+            {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6">
               <h2 className="text-2xl font-bold text-white mb-2">
                 {t('home.dailyTaskCheckin.title')}
@@ -74,6 +95,7 @@ export function HomePage() {
           </div>
         </Card>
 
+        {/* Attraction Hunt Card */}
         <Card className="overflow-hidden hover:border-primary transition-all cursor-pointer group">
           <div
             className="relative h-64 bg-gradient-to-br from-blue-900 to-purple-900 -m-4 mb-4"
@@ -82,15 +104,20 @@ export function HomePage() {
             role="button"
             tabIndex={0}
           >
+            {/* Background Image Placeholder */}
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800')] bg-cover bg-center opacity-50" />
+
+            {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-background-dark/90 to-transparent" />
 
+            {/* New Tasks Badge */}
             <div className="absolute top-4 right-4">
               <Badge variant="success" className="animate-pulse">
                 {t('home.newTasksAvailable', { defaultValue: 'New Tasks Available' })}
               </Badge>
             </div>
 
+            {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6">
               <h2 className="text-2xl font-bold text-white mb-2">
                 {t('home.attractionHunt.title')}
@@ -110,6 +137,7 @@ export function HomePage() {
         </Card>
       </div>
 
+      {/* Global Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <Card.Body>

@@ -1,3 +1,8 @@
+/**
+ * @file CheckinPage Component
+ * @description Page for daily check-in
+ */
+
 import { Button } from '@/components/common/Button'
 import { Card } from '@/components/common/Card'
 import { Input } from '@/components/common/Input'
@@ -8,6 +13,9 @@ import { type FormEvent, useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
+/**
+ * CheckinPage Component
+ */
 export function CheckinPage() {
   const { stakeId } = useParams<{ stakeId: string }>()
   const navigate = useNavigate()
@@ -27,6 +35,7 @@ export function CheckinPage() {
   })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Load stake info
   useEffect(() => {
     if (stakeId) {
       getStake(stakeId).then((stake) => {
@@ -53,6 +62,7 @@ export function CheckinPage() {
       return
     }
 
+    // Only validate location is present
     if (!formData.location) {
       alert(t('checkin.locationRequired') || 'Please enable location access')
       return
@@ -60,12 +70,15 @@ export function CheckinPage() {
 
     const success = await checkIn(
       stakeId,
-      formData.content || 'Daily check-in',
+      formData.content || 'Daily check-in', // Provide default content if empty
       formData.images,
       formData.location
     )
 
+    console.log('Check-in result:', success)
+
     if (success) {
+      // Reload stake info to get updated checkedDays
       const updatedStake = await getStake(stakeId)
       if (updatedStake) {
         setStakeInfo({
@@ -75,9 +88,12 @@ export function CheckinPage() {
         })
       }
 
+      // Navigate to rewards page
       navigate('/rewards')
     }
   }
+
+
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
@@ -115,7 +131,7 @@ export function CheckinPage() {
 
     setFormData({
       ...formData,
-      images: [...formData.images, ...newImages].slice(0, 9),
+      images: [...formData.images, ...newImages].slice(0, 9), // Max 9 images
     })
   }
 
@@ -125,6 +141,7 @@ export function CheckinPage() {
       images: formData.images.filter((_, i) => i !== index),
     })
   }
+
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -148,6 +165,7 @@ export function CheckinPage() {
         </Card.Header>
         <Card.Body>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Content Input */}
             <div>
               <label htmlFor="content" className="block text-sm font-medium text-white mb-2">
                 {t('checkin.shareExperience')} ({t('checkin.optional')})
@@ -165,6 +183,7 @@ export function CheckinPage() {
               </p>
             </div>
 
+            {/* Location */}
             <div>
               <label htmlFor="location-input" className="block text-sm font-medium text-white mb-2">
                 {t('checkin.location')}
@@ -187,11 +206,13 @@ export function CheckinPage() {
               </div>
             </div>
 
+            {/* Image Upload */}
             <div>
               <div className="block text-sm font-medium text-white mb-2">
                 {t('checkin.photos')} ({t('checkin.optional')}) ({formData.images.length}/9)
               </div>
 
+              {/* Image Preview Grid */}
               {formData.images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mb-2">
                   {formData.images.map((img, index) => (
@@ -213,6 +234,7 @@ export function CheckinPage() {
                 </div>
               )}
 
+              {/* Upload Button */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -239,6 +261,7 @@ export function CheckinPage() {
               </button>
             </div>
 
+            {/* Submit Buttons */}
             <div className="flex gap-3">
               <Button
                 type="button"
@@ -266,6 +289,7 @@ export function CheckinPage() {
         </Card.Body>
       </Card>
 
+      {/* Tips Card */}
       <Card>
         <Card.Header>
           <h2 className="text-xl font-semibold text-white">{t('checkin.tips')}</h2>

@@ -1,19 +1,38 @@
+/**
+ * @file ThemeSwitcher Component
+ * @description Dropdown component for switching between different color themes
+ */
+
 import { useTheme } from '@/contexts/ThemeContext'
 import type { ThemeId } from '@/types/theme.types'
 import { clsx } from 'clsx'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
+/**
+ * ThemeSwitcher component props
+ */
 export interface ThemeSwitcherProps {
+  /** Custom class name */
   className?: string
 }
 
+/**
+ * ThemeSwitcher Component
+ * Displays a dropdown menu to select from available color themes
+ *
+ * @example
+ * <ThemeSwitcher />
+ */
 export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
   const { t } = useTranslation()
   const { theme, themeId, setTheme, availableThemes } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  /**
+   * Close dropdown when clicking outside
+   */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -30,6 +49,9 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
     return undefined
   }, [isOpen])
 
+  /**
+   * Handle theme selection
+   */
   const handleThemeSelect = (selectedThemeId: ThemeId) => {
     setTheme(selectedThemeId)
     setIsOpen(false)
@@ -37,6 +59,7 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
 
   return (
     <div className={clsx('relative', className)} ref={dropdownRef}>
+      {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
@@ -61,6 +84,7 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
         </svg>
       </button>
 
+      {/* Dropdown Menu */}
       {isOpen && (
         <div
           className={clsx(
@@ -85,15 +109,22 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
                   )}
                   type="button"
                 >
+                  {/* Theme Icon */}
                   <span className="text-2xl">{themeOption.icon}</span>
+
+                  {/* Theme Info */}
                   <div className="flex-1">
                     <div className="font-medium">{t(`theme.${themeOption.id}`)}</div>
                   </div>
+
+                  {/* Color Preview */}
                   <div
                     className="w-6 h-6 rounded-full border-2 border-white/20"
                     style={{ backgroundColor: themeOption.colors.primary }}
                     aria-hidden="true"
                   />
+
+                  {/* Selected Indicator */}
                   {isSelected && (
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path
