@@ -21,7 +21,8 @@ export function AttractionsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isConnected, address, connect } = useWallet();
-  const { getAllTasks, joinTask, getUserTaskInfo } = useAttraction();
+  const { getAllTasks, joinTask, getUserTaskInfo, getOwner } = useAttraction();
+  const [isOwner, setIsOwner] = useState(false);
 
   const [tasks, setTasks] = useState<AttractionTask[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,24 @@ export function AttractionsPage() {
   const [taskToJoin, setTaskToJoin] = useState<AttractionTask | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [joinResult, setJoinResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Check if current user is owner
+  useEffect(() => {
+    const checkOwner = async () => {
+      if (address) {
+        try {
+          const owner = await getOwner();
+          setIsOwner(owner.toLowerCase() === address.toLowerCase());
+        } catch (error) {
+          console.error('Failed to check owner:', error);
+          setIsOwner(false);
+        }
+      } else {
+        setIsOwner(false);
+      }
+    };
+    checkOwner();
+  }, [address, getOwner]);
 
   // Load tasks
   useEffect(() => {
@@ -174,9 +193,11 @@ export function AttractionsPage() {
             {t('attractions.subtitle')}
           </p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/attraction-checkin/create')}>
-          创建景区打卡
-        </Button>
+{isOwner && (
+          <Button variant="primary" onClick={() => navigate('/attraction-checkin/create')}>
+            创建景区打卡
+          </Button>
+        )}
       </div>
 
       {/* Filter Tabs */}
@@ -226,10 +247,9 @@ export function AttractionsPage() {
           <Card.Body>
             <p className="text-sm text-text-muted mb-1">{t('attractions.avgRewardApy')}</p>
             <p className="text-2xl font-bold text-white">
-              {(
-                tasks.reduce((sum, task) => sum + task.rewardApy, 0) /
-                tasks.length
-              ).toFixed(1)}
+              {tasks.length > 0
+                ? (tasks.reduce((sum, task) => sum + task.rewardApy, 0) / tasks.length).toFixed(1)
+                : '0.0'}
               %
             </p>
           </Card.Body>
@@ -251,6 +271,7 @@ export function AttractionsPage() {
               onJoin={handleAction}
               actionLabel={getActionLabel(task)}
               onViewDetails={handleViewDetails}
+              hideJoinButton={isOwner}
             />
           ))}
         </div>

@@ -149,7 +149,8 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
         require(rewardPerUser > 0, "Invalid reward");
         require(totalSlots > 0, "Invalid slots");
         require(endTime > startTime, "Invalid time range");
-        require(startTime >= block.timestamp, "Start time in past");
+        // Allow startTime to be current time or slightly in the past (within 5 minutes) for immediate start
+        require(startTime + 300 >= block.timestamp, "Start time too far in past");
         require(radius > 0 && radius <= 10000, "Invalid radius"); // Max 10km
 
         // Verify deposited amount

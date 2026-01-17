@@ -26,6 +26,8 @@ export interface TaskCardProps {
   actionLabel?: string;
   /** View details handler */
   onViewDetails?: (task: AttractionTask) => void;
+  /** Hide join button (e.g., for contract owner) */
+  hideJoinButton?: boolean;
 }
 
 /**
@@ -43,7 +45,8 @@ export function TaskCard({
   className,
   onJoin,
   actionLabel,
-  onViewDetails
+  onViewDetails,
+  hideJoinButton = false
 }: TaskCardProps) {
   const { t } = useTranslation();
 
@@ -241,7 +244,7 @@ export function TaskCard({
       <Card.Footer>
         <div className="flex gap-2">
           {/* Join button */}
-          {canJoin && onJoin && (
+          {canJoin && onJoin && !hideJoinButton && (
             <Button
               variant="primary"
               size="md"
