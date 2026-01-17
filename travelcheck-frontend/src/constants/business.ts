@@ -3,7 +3,7 @@
  * These constants define the core business rules and configurations
  */
 
-// Stake Amount Limits (in ETH)
+// Stake Amount Limits (in MON)
 export const MIN_STAKE_AMOUNT = 0.0001;
 export const MAX_STAKE_AMOUNT = 1000;
 

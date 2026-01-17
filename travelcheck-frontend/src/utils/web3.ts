@@ -95,15 +95,15 @@ export async function signMessage(message: string): Promise<string> {
 }
 
 /**
- * Get the balance of an address in ETH
+ * Get the balance of an address in MON
  *
  * @param address - Ethereum address
- * @returns Promise resolving to balance in ETH as string
+ * @returns Promise resolving to balance in MON as string
  *
  * @example
  * const balance = await getBalance('0x1234...')
- * console.log('Balance:', balance, 'ETH')
- * // Output: Balance: 1.5 ETH
+ * console.log('Balance:', balance, 'MON')
+ * // Output: Balance: 1.5 MON
  */
 export async function getBalance(address: string): Promise<string> {
   const ethereum = getEthereumProvider()
@@ -126,7 +126,7 @@ export async function getBalance(address: string): Promise<string> {
     console.log('  - 原始余额 (Wei):', balance.toString())
 
     const balanceInEth = formatEther(balance)
-    console.log('  - ETH 余额:', balanceInEth)
+    console.log('  - MON 余额:', balanceInEth)
 
     return balanceInEth
   } catch (error) {

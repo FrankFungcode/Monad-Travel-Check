@@ -183,7 +183,7 @@ export function RedPacket({ reward, className, onClaim, onClose }: RedPacketProp
                 {reward.claimed ? formatAmount(reward.amount || 0) : '?'}
               </div>
               <div className="text-xl text-yellow-200 mt-2">
-                {reward.claimed ? 'ETH' : '随机金额'}
+                {reward.claimed ? 'MON' : '随机金额'}
               </div>
             </div>
 

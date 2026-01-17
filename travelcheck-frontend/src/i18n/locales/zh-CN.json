@@ -156,7 +156,7 @@
     "noTasksDescription": "尝试选择不同的筛选条件或稍后查看新景点",
     "viewAllTasks": "查看全部任务",
     "confirmJoin": "确认加入 {{name}}?",
-    "joinDescription": "加入此任务需要进行链上交易确认。请确保您有足够的 ETH 支付 Gas 费。"
+    "joinDescription": "加入此任务需要进行链上交易确认。请确保您有足够的 MON 支付 Gas 费。"
   },
   "checkins": {
     "title": "我的打卡",

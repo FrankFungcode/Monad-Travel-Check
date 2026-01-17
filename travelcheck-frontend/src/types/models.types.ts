@@ -145,7 +145,7 @@ export interface AttractionTask {
   endDate: Date
   /** 任务状态 */
   status: 'upcoming' | 'active' | 'expiring' | 'completed'
-  /** 奖励金额 (ETH) */
+  /** 奖励金额 (MON) */
   rewardAmount?: string
   /** 总名额 */
   totalSlots: number

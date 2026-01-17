@@ -333,7 +333,7 @@ export function AttractionsPage() {
               <div className="bg-background-darker p-4 rounded-lg space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-text-muted">{t('taskCard.reward')}</span>
-                  <span className="text-primary font-bold">{selectedTask.rewardAmount} ETH</span>
+                  <span className="text-primary font-bold">{selectedTask.rewardAmount} MON</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-text-muted">{t('taskCard.duration')}</span>

@@ -34,7 +34,7 @@ export const HARDHAT_LOCAL: NetworkConfig = {
   chainName: 'Hardhat Local',
   nativeCurrency: {
     name: 'Ethereum',
-    symbol: 'ETH',
+    symbol: 'MON',
     decimals: 18,
   },
   rpcUrls: ['http://127.0.0.1:8545'],
@@ -45,23 +45,23 @@ export const HARDHAT_LOCAL: NetworkConfig = {
  * Monad Devnet configuration
  */
 export const MONAD_DEVNET: NetworkConfig = {
-  chainId: '0x8F', // 143 in hex
-  chainIdNumber: 143,
-  chainName: 'Monad Devnet',
+  chainId: '0x279f', // 10143 in hex
+  chainIdNumber: 10143,
+  chainName: 'Monad Testnet',
   nativeCurrency: {
     name: 'Monad',
     symbol: 'MON',
     decimals: 18,
   },
-  rpcUrls: ['https://devnet.monad.xyz'], // 请根据实际情况修改
+  rpcUrls: ['https://testnet-rpc.monad.xyz'],
   blockExplorerUrls: [],
 }
 
 /**
  * Default network configuration
- * 默认使用 Hardhat 本地网络
+ * 默认使用 Monad Devnet
  */
-export const DEFAULT_NETWORK = HARDHAT_LOCAL
+export const DEFAULT_NETWORK = MONAD_DEVNET
 
 /**
  * All supported networks

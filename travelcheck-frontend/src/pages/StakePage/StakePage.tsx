@@ -94,7 +94,7 @@ export function StakePage() {
                   htmlFor="amount"
                   className="block text-sm font-medium text-white mb-2"
                 >
-                  {t("stake.stakeAmount")} (ETH)
+                  {t("stake.stakeAmount")} (MON)
                 </label>
                 <Input
                   style={{ width: "100%" }}

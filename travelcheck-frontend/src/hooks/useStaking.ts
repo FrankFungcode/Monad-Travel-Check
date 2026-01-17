@@ -356,7 +356,7 @@ export function useStaking() {
         }
 
         console.log('Final claimed amount:', amountEth)
-        showSuccess(`红包领取成功！金额: ${amountEth} ETH`)
+        showSuccess(`红包领取成功！金额: ${amountEth} MON`)
         return amountEth
       } catch (error) {
         console.error('Claim red packet error:', error)
@@ -398,7 +398,7 @@ export function useStaking() {
         // Refresh stake data
         await refreshStake(stakeId)
 
-        showSuccess(`Withdrawal successful! Total: ${amountEth} ETH`)
+        showSuccess(`Withdrawal successful! Total: ${amountEth} MON`)
         return amountEth
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to withdraw'

@@ -182,7 +182,7 @@ export function RewardsPage() {
         <Card>
           <Card.Body>
             <p className="text-sm text-text-muted mb-1">{t('rewards.totalEarned')}</p>
-            <p className="text-2xl font-bold text-primary">{totalEarned} ETH</p>
+            <p className="text-2xl font-bold text-primary">{totalEarned} MON</p>
           </Card.Body>
         </Card>
         <Card>

@@ -28,7 +28,7 @@ export function AttractionCheckinCreatePage() {
         description: '',
         location: null as { lat: number; lng: number } | null,
         radius: '500', // Default 500m
-        rewardPerUser: '0.001', // Default 0.001 ETH
+        rewardPerUser: '0.001', // Default 0.001 MON
         totalSlots: '10',
         duration: '7' // Days
     })
@@ -238,7 +238,7 @@ export function AttractionCheckinCreatePage() {
                             {/* Reward Per User */}
                             <div>
                                 <label htmlFor="reward" className="block text-sm font-medium text-white mb-2">
-                                    单人奖励 (ETH)
+                                    单人奖励 (MON)
                                 </label>
                                 <Input
                                     id="reward"
@@ -266,7 +266,7 @@ export function AttractionCheckinCreatePage() {
 
                         {/* Total Deposit Hint */}
                         <div className="p-3 bg-primary-900/30 rounded-lg text-sm text-primary-200">
-                            需存入总奖励: {(Number(formData.rewardPerUser) * Number(formData.totalSlots)).toFixed(4)} ETH
+                            需存入总奖励: {(Number(formData.rewardPerUser) * Number(formData.totalSlots)).toFixed(4)} MON
                         </div>
 
                         {/* Submit Buttons */}

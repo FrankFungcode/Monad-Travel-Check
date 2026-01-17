@@ -257,7 +257,7 @@ export function AttractionCheckinPage() {
                     <div className="bg-primary-900/30 border border-primary-500/50 rounded-xl p-4">
                         <p className="text-sm text-text-muted mb-1">获得奖励</p>
                         <p className="text-3xl font-bold text-primary">
-                            {task.rewardAmount} <span className="text-lg">ETH</span>
+                            {task.rewardAmount} <span className="text-lg">MON</span>
                         </p>
                     </div>
 

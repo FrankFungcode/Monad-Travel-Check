@@ -5,6 +5,7 @@
 
 import { formatAddress, formatAmount } from '@/utils/format'
 import { getBalance, connectWallet as web3ConnectWallet, ensureCorrectNetwork } from '@/utils/web3'
+import { DEFAULT_NETWORK } from '@/constants/networks'
 import { atom } from 'jotai'
 
 /**
@@ -13,7 +14,7 @@ import { atom } from 'jotai'
 export interface WalletState {
   /** Wallet address */
   address: string | null
-  /** Wallet balance in ETH */
+  /** Wallet balance in MON */
   balance: string
   /** Connection status */
   isConnected: boolean
@@ -48,12 +49,12 @@ export const formattedAddressAtom = atom((get) => {
  *
  * @example
  * const formattedBalance = useAtomValue(formattedBalanceAtom)
- * // Returns: '1.50 ETH'
+ * // Returns: '1.50 MON'
  */
 export const formattedBalanceAtom = atom((get) => {
   const wallet = get(walletAtom)
   const balanceNum = Number.parseFloat(wallet.balance)
-  return `${formatAmount(balanceNum, 4)} ETH`
+  return `${formatAmount(balanceNum, 4)} ${DEFAULT_NETWORK.nativeCurrency.symbol}`
 })
 
 /**
