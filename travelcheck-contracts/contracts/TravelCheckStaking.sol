@@ -70,9 +70,8 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
     mapping(uint256 => CheckinRecord[]) public checkinRecords;
 
     // Red packet related
-    address public signer; // Server signature address
-    mapping(bytes32 => bool) public usedSignatures; // Prevent signature reuse
     mapping(uint256 => uint256) public redPacketClaimed; // stakeId => total claimed amount
+    mapping(uint256 => mapping(uint256 => bool)) public redPacketClaimedByCheckin; // stakeId => checkinIndex => claimed
     RedPacketTier[] public redPacketTiers; // Red packet tier config
 
     // Constants
@@ -106,7 +105,6 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
         address indexed user,
         uint256 amount
     );
-    event SignerUpdated(address indexed newSigner);
     event RedPacketTierUpdated(
         uint256 indexed index,
         uint256 progressBps,
@@ -116,12 +114,8 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
     /**
      * @dev Constructor
      * @param initialOwner Address to receive ownership
-     * @param _signer Address for signature verification (server's public key)
      */
-    constructor(address initialOwner, address _signer) Ownable(initialOwner) {
-        require(_signer != address(0), "Invalid signer address");
-        signer = _signer;
-
+    constructor(address initialOwner) Ownable(initialOwner) payable {
         // Set interest rates (sealed mode)
         sealedRates[10] = 500; // 5%
         sealedRates[20] = 800; // 8%
@@ -359,52 +353,37 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
     // ============ Red Packet Functions ============
 
     /**
-     * @dev Claim red packet reward
+     * @dev Claim red packet reward (no signature required)
      * @param stakeId ID of the stake
      * @param checkinIndex Index of the check-in (0-based)
-     * @param amount Red packet amount (calculated by server)
-     * @param expiry Signature expiry timestamp
-     * @param signature Server signature
      */
     function claimRedPacket(
         uint256 stakeId,
-        uint256 checkinIndex,
-        uint256 amount,
-        uint256 expiry,
-        bytes calldata signature
+        uint256 checkinIndex
     ) external nonReentrant {
         Stake storage stake = stakes[stakeId];
 
         // Basic validations
         require(stake.user == msg.sender, "Not stake owner");
-        require(block.timestamp <= expiry, "Signature expired");
-        require(amount > 0, "Invalid amount");
         require(
             checkinIndex < checkinRecords[stakeId].length,
             "Invalid checkin index"
         );
-
-        // Construct message hash
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(stakeId, checkinIndex, amount, expiry, msg.sender)
-        );
-
-        // Prevent signature reuse
-        require(!usedSignatures[messageHash], "Signature already used");
-        usedSignatures[messageHash] = true;
-
-        // Verify signature
-        bytes32 ethSignedHash = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
-        );
         require(
-            _recoverSigner(ethSignedHash, signature) == signer,
-            "Invalid signature"
+            !redPacketClaimedByCheckin[stakeId][checkinIndex],
+            "Red packet already claimed"
         );
 
-        // Verify amount doesn't exceed max
+        // Mark as claimed
+        redPacketClaimedByCheckin[stakeId][checkinIndex] = true;
+
+        // Calculate red packet amount using pseudo-random
         uint256 maxAmount = getMaxRedPacketAmount(stakeId);
-        require(amount <= maxAmount, "Amount exceeds max");
+        uint256 amount = _calculateRedPacketAmount(stakeId, checkinIndex, maxAmount);
+
+        if (amount == 0) {
+            return;
+        }
 
         // Record claimed amount
         redPacketClaimed[stakeId] += amount;
@@ -418,6 +397,51 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
         require(success, "Transfer failed");
 
         emit RedPacketClaimed(stakeId, checkinIndex, msg.sender, amount);
+    }
+
+    /**
+     * @dev Calculate red packet amount using pseudo-random
+     * @param stakeId ID of the stake
+     * @param checkinIndex Check-in index
+     * @param maxAmount Maximum amount
+     * @return Red packet amount (between 10% and 100% of max)
+     */
+    function _calculateRedPacketAmount(
+        uint256 stakeId,
+        uint256 checkinIndex,
+        uint256 maxAmount
+    ) internal view returns (uint256) {
+        if (maxAmount == 0) return 0;
+
+        // Generate pseudo-random number using block data and stake info
+        uint256 random = uint256(
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.prevrandao,
+                    stakeId,
+                    checkinIndex,
+                    msg.sender
+                )
+            )
+        );
+
+        // Calculate amount: 10% to 100% of max amount
+        uint256 percentage = 10 + (random % 91); // 10-100
+        return (maxAmount * percentage) / 100;
+    }
+
+    /**
+     * @dev Check if red packet is claimed for a specific check-in
+     * @param stakeId ID of the stake
+     * @param checkinIndex Check-in index
+     * @return Whether the red packet is claimed
+     */
+    function isRedPacketClaimed(
+        uint256 stakeId,
+        uint256 checkinIndex
+    ) external view returns (bool) {
+        return redPacketClaimedByCheckin[stakeId][checkinIndex];
     }
 
     /**
@@ -445,33 +469,6 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
 
         // Calculate max amount
         return (stake.amount * maxRateBps) / BASIS_POINTS;
-    }
-
-    /**
-     * @dev Recover signer from signature
-     */
-    function _recoverSigner(
-        bytes32 hash,
-        bytes memory signature
-    ) internal pure returns (address) {
-        require(signature.length == 65, "Invalid signature length");
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := byte(0, mload(add(signature, 96)))
-        }
-
-        if (v < 27) {
-            v += 27;
-        }
-
-        require(v == 27 || v == 28, "Invalid signature v value");
-        return ecrecover(hash, v, r, s);
     }
 
     // ============ Check-in Query Functions ============
@@ -531,16 +528,6 @@ contract TravelCheckStaking is Ownable, ReentrancyGuard {
     }
 
     // ============ Admin Functions ============
-
-    /**
-     * @dev Update signer address
-     * @param _signer New signer address
-     */
-    function setSigner(address _signer) external onlyOwner {
-        require(_signer != address(0), "Invalid signer");
-        signer = _signer;
-        emit SignerUpdated(_signer);
-    }
 
     /**
      * @dev Update red packet tier

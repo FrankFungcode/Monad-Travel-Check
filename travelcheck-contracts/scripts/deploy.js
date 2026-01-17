@@ -12,21 +12,15 @@ async function main() {
   const signerAddress = process.env.SIGNER_ADDRESS || deployer.address;
   console.log("Signer address for Attraction verification:", signerAddress);
 
-  // 1. Deploy Staking Contract
+  // 1. Deploy Staking Contract (with initial funding)
   console.log("\n--- Deploying TravelCheckStaking ---");
   const Staking = await hre.ethers.getContractFactory("TravelCheckStaking");
-  const staking = await Staking.deploy(deployer.address, signerAddress);
+  const initialFunding = hre.ethers.parseEther("5");
+  const staking = await Staking.deploy(deployer.address, { value: initialFunding });
   await staking.waitForDeployment();
   const stakingAddress = await staking.getAddress();
   console.log("TravelCheckStaking deployed to:", stakingAddress);
-
-  // Fund the staking contract for rewards (interest + red packets)
-  console.log("Funding staking contract with 5 ETH for rewards...");
-  await deployer.sendTransaction({
-    to: stakingAddress,
-    value: hre.ethers.parseEther("5")
-  });
-  console.log("Staking contract funded.");
+  console.log("Staking contract funded with 5 ETH for rewards (interest + red packets).");
 
   // 2. Deploy Attraction Contract
   console.log("\n--- Deploying TravelCheckAttraction ---");
@@ -69,7 +63,7 @@ async function main() {
   // Verify instructions
   console.log("To verify contracts on explorer:");
   console.log(
-    `npx hardhat verify --network ${hre.network.name} ${stakingAddress} ${deployer.address} ${signerAddress}`
+    `npx hardhat verify --network ${hre.network.name} ${stakingAddress} ${deployer.address}`
   );
   console.log(
     `npx hardhat verify --network ${hre.network.name} ${attractionAddress} ${deployer.address} ${signerAddress}`
