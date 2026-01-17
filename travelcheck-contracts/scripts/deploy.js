@@ -15,12 +15,16 @@ async function main() {
   // 1. Deploy Staking Contract (with initial funding)
   console.log("\n--- Deploying TravelCheckStaking ---");
   const Staking = await hre.ethers.getContractFactory("TravelCheckStaking");
-  const initialFunding = hre.ethers.parseEther("5");
-  const staking = await Staking.deploy(deployer.address, { value: initialFunding });
+  const initialFunding = hre.ethers.parseEther("2");
+  const staking = await Staking.deploy(deployer.address, {
+    value: initialFunding
+  });
   await staking.waitForDeployment();
   const stakingAddress = await staking.getAddress();
   console.log("TravelCheckStaking deployed to:", stakingAddress);
-  console.log("Staking contract funded with 5 ETH for rewards (interest + red packets).");
+  console.log(
+    "Staking contract funded with 2 ETH for rewards (interest + red packets)."
+  );
 
   // 2. Deploy Attraction Contract
   console.log("\n--- Deploying TravelCheckAttraction ---");

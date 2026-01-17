@@ -93,9 +93,8 @@ export function AttractionCheckinCreatePage() {
 
         setLoading(true)
         try {
-            // Set start time to 5 minutes in the future to ensure it passes "Start time in past" check
-            // Transaction confirmation takes time, so buffer is needed
-            const startTime = Math.floor(Date.now() / 1000) + 300
+            // Set start time to now so users can join immediately after task creation
+            const startTime = Math.floor(Date.now() / 1000)
             const endTime = startTime + Number(formData.duration) * 24 * 3600
 
             await createTask({

@@ -138,7 +138,8 @@
     "recentRewards": "最近奖励",
     "dailyRedPacket": "每日红包",
     "daysAgo": "天前",
-    "claimed": "已领取"
+    "claimed": "已领取",
+    "noRedPackets": "暂无红包"
   },
   "attractions": {
     "title": "景点任务",

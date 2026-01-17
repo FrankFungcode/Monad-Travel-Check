@@ -140,7 +140,8 @@
     "recentRewards": "Recent Rewards",
     "dailyRedPacket": "Daily Red Packet",
     "daysAgo": "days ago",
-    "claimed": "Claimed"
+    "claimed": "Claimed",
+    "noRedPackets": "No red packets yet"
   },
   "attractions": {
     "title": "Attraction Tasks",
