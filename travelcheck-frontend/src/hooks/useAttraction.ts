@@ -4,7 +4,7 @@
  * @description Analyzed from contract source code:
  * - createTask(name, description, latitude, longitude, radius, rewardPerUser, totalSlots, startTime, endTime)
  * - acceptTask(taskId)
- * - completeTask(taskId, contentHash, latitude, longitude, expiry, signature)
+ * - completeTask(taskId, contentHash, latitude, longitude)
  * - getTask(taskId)
  * - getTaskCount()
  */
@@ -183,6 +183,7 @@ export function useAttraction() {
                     status: status as 'active' | 'upcoming' | 'expiring' | 'completed',
                     createdAt: new Date(), // Created time not stored in struct, using now or start time
                     rewardAmount: formatEther(task.rewardPerUser),
+                    remainingReward: formatEther(task.remainingReward),
                     totalSlots: Number(task.totalSlots),
                     claimedSlots: Number(task.claimedSlots)
                 } as AttractionTask

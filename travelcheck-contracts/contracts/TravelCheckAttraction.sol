@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @notice Attraction check-in task contract
  * @dev Platform creates tasks with pre-deposited ETH/MON rewards
  *      Users can accept and complete tasks to earn rewards
- *      GPS verification is done off-chain, completion requires server signature
+ *      GPS verification is done off-chain
  */
 contract TravelCheckAttraction is Ownable, ReentrancyGuard {
 
@@ -57,11 +57,6 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
     // Next task ID
     uint256 public nextTaskId;
 
-    // Signature verification address
-    address public signer;
-
-    // Used signatures (prevent reuse)
-    mapping(bytes32 => bool) public usedSignatures;
 
     // ============ Events ============
 
@@ -102,18 +97,14 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
         uint256 additionalSlots
     );
 
-    event SignerUpdated(address indexed newSigner);
 
     // ============ Constructor ============
 
     /**
      * @dev Constructor
      * @param initialOwner Owner address
-     * @param _signer Signature verification address
      */
-    constructor(address initialOwner, address _signer) Ownable(initialOwner) {
-        require(_signer != address(0), "Invalid signer");
-        signer = _signer;
+    constructor(address initialOwner) Ownable(initialOwner) {
     }
 
     // Accept ETH for reward pool
@@ -275,21 +266,17 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Complete a task (requires server signature for GPS verification)
+     * @notice Complete a task
      * @param taskId Task ID
      * @param contentHash Check-in content hash
      * @param latitude User latitude × 10^6
      * @param longitude User longitude × 10^6
-     * @param expiry Signature expiry timestamp
-     * @param signature Server signature
      */
     function completeTask(
         uint256 taskId,
         bytes32 contentHash,
         int256 latitude,
-        int256 longitude,
-        uint256 expiry,
-        bytes calldata signature
+        int256 longitude
     ) external nonReentrant {
         Task storage task = tasks[taskId];
         UserTaskInfo storage userTask = userTasks[taskId][msg.sender];
@@ -299,29 +286,7 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
         require(userTask.accepted, "Not accepted");
         require(!userTask.completed, "Already completed");
         require(block.timestamp <= task.endTime, "Task ended");
-        require(block.timestamp <= expiry, "Signature expired");
         require(task.remainingReward >= task.rewardPerUser, "Insufficient reward");
-
-        // Construct message hash
-        bytes32 messageHash = keccak256(abi.encodePacked(
-            taskId,
-            msg.sender,
-            contentHash,
-            latitude,
-            longitude,
-            expiry
-        ));
-
-        // Prevent signature reuse
-        require(!usedSignatures[messageHash], "Signature already used");
-        usedSignatures[messageHash] = true;
-
-        // Verify signature
-        bytes32 ethSignedHash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n32",
-            messageHash
-        ));
-        require(_recoverSigner(ethSignedHash, signature) == signer, "Invalid signature");
 
         // Update state
         userTask.completed = true;
@@ -408,16 +373,6 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
     // ============ Admin Functions ============
 
     /**
-     * @notice Update signer address
-     * @param _signer New signer address
-     */
-    function setSigner(address _signer) external onlyOwner {
-        require(_signer != address(0), "Invalid signer");
-        signer = _signer;
-        emit SignerUpdated(_signer);
-    }
-
-    /**
      * @notice Emergency withdraw (only owner, for emergencies)
      * @param amount Amount to withdraw
      */
@@ -428,28 +383,4 @@ contract TravelCheckAttraction is Ownable, ReentrancyGuard {
     }
 
     // ============ Internal Functions ============
-
-    /**
-     * @dev Recover signer from signature
-     */
-    function _recoverSigner(bytes32 hash, bytes memory signature) internal pure returns (address) {
-        require(signature.length == 65, "Invalid signature length");
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := byte(0, mload(add(signature, 96)))
-        }
-
-        if (v < 27) {
-            v += 27;
-        }
-
-        require(v == 27 || v == 28, "Invalid signature v value");
-        return ecrecover(hash, v, r, s);
-    }
 }

@@ -35,7 +35,7 @@
 | -------- | ---------------------------------------------------------------------- |
 | 创建质押 | 用户质押 ETH/MON，选择里程碑（10/20/30/50 天）和模式（SEALED/ANYTIME） |
 | 打卡上链 | 打卡内容哈希+GPS 坐标存储在链上                                        |
-| 红包奖励 | 每次打卡后可领取红包，金额由服务端计算并签名                           |
+| 红包奖励 | 每次打卡后可领取红包                                                  |
 | 利息计算 | 根据进度和模式计算利息，SEALED 模式收益更高                            |
 | 提现     | SEALED 模式需完成后提现，ANYTIME 模式随时可提                          |
 
@@ -80,13 +80,9 @@ await staking.checkIn(
 #### 领取红包
 
 ```javascript
-// 服务端生成签名后
 await staking.claimRedPacket(
   stakeId,
-  checkinIndex, // 第几次打卡（0开始）
-  amount, // 红包金额（wei）
-  expiry, // 过期时间戳
-  signature // 服务端签名
+  checkinIndex // 第几次打卡（0开始）
 );
 ```
 
@@ -130,7 +126,7 @@ await staking.withdraw(stakeId);
 ### 3.1 业务流程
 
 ```
-平台创建任务（预存奖励）→ 用户接取 → 到景区打卡 → 服务端验证GPS → 领取奖励
+平台创建任务（预存奖励）→ 用户接取 → 到景区打卡 → 领取奖励
 ```
 
 ### 3.2 核心功能
@@ -139,7 +135,7 @@ await staking.withdraw(stakeId);
 | -------- | ------------------------------------------ |
 | 创建任务 | 平台设置景区位置、奖励金额、名额、时间范围 |
 | 接取任务 | 用户接取感兴趣的任务                       |
-| 完成任务 | 到达景区后提交打卡，服务端验证 GPS 后签名  |
+| 完成任务 | 到达景区后提交打卡                         |
 | 任务管理 | 暂停/恢复/取消任务                         |
 
 ### 3.3 调用方式
@@ -171,14 +167,11 @@ await attraction.acceptTask(taskId);
 #### 完成任务
 
 ```javascript
-// 服务端验证 GPS 后生成签名
 await attraction.completeTask(
   taskId,
   contentHash, // 打卡内容哈希
   userLatitude, // 用户纬度
-  userLongitude, // 用户经度
-  expiry, // 签名过期时间
-  signature // 服务端签名
+  userLongitude // 用户经度
 );
 // 自动转账奖励给用户
 ```
@@ -210,33 +203,9 @@ await attraction.addReward(taskId, { value: ethers.parseEther("0.5") });
 
 ---
 
-## 四、服务端职责
+## 四、客户端职责
 
-### 4.1 签名生成
-
-服务端需要为以下操作生成签名：
-
-**红包签名:**
-
-```javascript
-const messageHash = ethers.solidityPackedKeccak256(
-  ["uint256", "uint256", "uint256", "uint256", "address"],
-  [stakeId, checkinIndex, amount, expiry, userAddress]
-);
-const signature = await signer.signMessage(ethers.getBytes(messageHash));
-```
-
-**任务完成签名:**
-
-```javascript
-const messageHash = ethers.solidityPackedKeccak256(
-  ["uint256", "address", "bytes32", "int256", "int256", "uint256"],
-  [taskId, userAddress, contentHash, latitude, longitude, expiry]
-);
-const signature = await signer.signMessage(ethers.getBytes(messageHash));
-```
-
-### 4.2 GPS 验证
+### 4.1 GPS 验证
 
 ```javascript
 // Haversine 公式计算距离
@@ -310,7 +279,6 @@ function calculateRedPacketAmount(stakeAmount, checkedDays, milestone) {
 
 | 函数                                                  | 说明             |
 | ----------------------------------------------------- | ---------------- |
-| `setSigner(address)`                                  | 更新签名验证地址 |
 | `updateRedPacketTier(index, progressBps, maxRateBps)` | 更新红包阈值     |
 | `addRedPacketTier(progressBps, maxRateBps)`           | 添加红包阈值     |
 | `markImperfect(stakeId)`                              | 标记漏打卡       |
@@ -325,7 +293,6 @@ function calculateRedPacketAmount(stakeAmount, checkedDays, milestone) {
 | `resumeTask(taskId)`        | 恢复任务     |
 | `cancelTask(taskId)`        | 取消任务     |
 | `addReward(taskId)`         | 追加奖励     |
-| `setSigner(address)`        | 更新签名地址 |
 | `emergencyWithdraw(amount)` | 紧急提现     |
 
 ---
@@ -341,7 +308,6 @@ function calculateRedPacketAmount(stakeAmount, checkedDays, milestone) {
 | `InterestCalculated` | 利息计算     |
 | `StakeWithdrawn`     | 提现成功     |
 | `RedPacketClaimed`   | 领取红包     |
-| `SignerUpdated`      | 更新签名地址 |
 
 ### 7.2 Attraction 合约
 
@@ -363,7 +329,6 @@ function calculateRedPacketAmount(stakeAmount, checkedDays, milestone) {
 ```bash
 # .env
 PRIVATE_KEY=your_deployer_private_key
-SIGNER_ADDRESS=your_signer_address  # 可选，默认使用部署者地址
 ```
 
 ### 8.2 部署命令
@@ -382,7 +347,6 @@ npx hardhat run scripts/deploy.js --network monad-testnet
 {
   "network": "monad-testnet",
   "deployer": "0x...",
-  "signer": "0x...",
   "contracts": {
     "TravelCheckStaking": "0x...",
     "TravelCheckAttraction": "0x...",
@@ -395,8 +359,5 @@ npx hardhat run scripts/deploy.js --network monad-testnet
 
 ## 九、安全注意事项
 
-1. **签名私钥**: 服务端签名私钥必须安全存储，泄露会导致奖励被盗
-2. **签名过期**: 所有签名都有过期时间，防止重放攻击
-3. **签名唯一**: 每个签名只能使用一次
-4. **重入保护**: 所有转账操作都使用 `nonReentrant`
-5. **金额验证**: 红包金额不能超过最大限制
+1. **重入保护**: 所有转账操作都使用 `nonReentrant`
+2. **金额验证**: 红包金额不能超过最大限制

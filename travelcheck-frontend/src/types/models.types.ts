@@ -147,6 +147,8 @@ export interface AttractionTask {
   status: 'upcoming' | 'active' | 'expiring' | 'completed'
   /** 奖励金额 (MON) */
   rewardAmount?: string
+  /** 剩余奖金池 (MON) */
+  remainingReward?: string
   /** 总名额 */
   totalSlots: number
   /** 已领名额 */

@@ -30,7 +30,7 @@
 **主要功能：**
 - 创建景区任务（预存奖励池）
 - 用户接取任务
-- GPS 验证完成任务（服务端签名验证）
+- GPS 验证完成任务
 - 任务管理（暂停/恢复/取消）
 
 ### 3. TravelCheckBadge
@@ -128,9 +128,6 @@ npm run deploy:monad
 # 部署者私钥
 PRIVATE_KEY=your_deployer_private_key
 
-# 签名验证地址（用于景区任务 GPS 验证）
-SIGNER_ADDRESS=your_signer_address
-
 # Monad 测试网 RPC
 MONAD_TESTNET_RPC_URL=https://testnet-rpc.monad.xyz
 ```
@@ -172,7 +169,7 @@ struct CheckinRecord {
 |------|------|
 | `createStake(type, milestone, mode)` | 创建质押 |
 | `checkIn(stakeId, contentHash, lat, lng)` | 每日打卡 |
-| `claimRedPacket(stakeId, checkinIndex, amount, expiry, signature)` | 领取红包 |
+| `claimRedPacket(stakeId, checkinIndex)` | 领取红包 |
 | `withdraw(stakeId)` | 提现本金+利息 |
 | `calculateInterest(stakeId)` | 计算当前利息 |
 | `markImperfect(stakeId)` | 标记漏卡（管理员） |
@@ -242,25 +239,11 @@ struct UserTaskInfo {
 |------|------|
 | `createTask(...)` | 创建景区任务（需预存奖励） |
 | `acceptTask(taskId)` | 用户接取任务 |
-| `completeTask(taskId, contentHash, lat, lng, expiry, signature)` | 完成任务 |
+| `completeTask(taskId, contentHash, lat, lng)` | 完成任务 |
 | `pauseTask(taskId)` | 暂停任务 |
 | `resumeTask(taskId)` | 恢复任务 |
 | `cancelTask(taskId)` | 取消任务（退还奖励） |
 | `addReward(taskId)` | 追加奖励 |
-
-#### 签名验证
-
-完成任务需要服务端签名验证 GPS 位置：
-
-```solidity
-// 签名数据
-keccak256(abi.encodePacked(taskId, user, contentHash, latitude, longitude, expiry))
-```
-
-**安全机制：**
-- 签名过期时间验证
-- 签名防重放（usedSignatures 映射）
-- ReentrancyGuard 保护
 
 ---
 
@@ -303,12 +286,10 @@ keccak256(abi.encodePacked(taskId, user, contentHash, latitude, longitude, expir
 
 - **ReentrancyGuard**: 防重入攻击
 - **Ownable**: 管理员权限控制
-- **签名验证**: GPS 位置验证防作弊
-- **签名防重放**: 防止签名重复使用
 - **Pausable**: 紧急暂停机制
 - **OpenZeppelin**: 使用经过审计的合约库
 
-## 服务端职责
+## 客户端职责
 
 ### GPS 验证
 
@@ -325,17 +306,6 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
 }
-```
-
-### 签名生成
-
-```javascript
-// 景区任务完成签名
-const message = ethers.solidityPackedKeccak256(
-  ['uint256', 'address', 'bytes32', 'int256', 'int256', 'uint256'],
-  [taskId, userAddress, contentHash, latitude, longitude, expiry]
-);
-const signature = await signer.signMessage(ethers.getBytes(message));
 ```
 
 ## 开发指南
