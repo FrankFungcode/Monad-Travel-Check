@@ -4,12 +4,13 @@
  */
 
 const DB_NAME = 'TravelCheckDB'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 // Store names
 const STORES = {
   CHECKINS: 'checkins',
   STAKES: 'stakes',
+  PROFILES: 'profiles',
 } as const
 
 /**
@@ -28,6 +29,18 @@ export interface LocalCheckin {
   } | null
   timestamp: number
   txHash?: string // transaction hash after on-chain
+}
+
+/**
+ * User profile (stored in IndexedDB, keyed by wallet address)
+ */
+export interface UserProfile {
+  walletAddress: string // primary key (lowercase)
+  nickname: string
+  avatar: string // base64 or URL
+  bio: string
+  createdAt: number
+  updatedAt: number
 }
 
 /**
@@ -78,6 +91,11 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORES.STAKES)) {
         const stakesStore = db.createObjectStore(STORES.STAKES, { keyPath: 'id' })
         stakesStore.createIndex('status', 'status', { unique: false })
+      }
+
+      // Create profiles store (v2)
+      if (!db.objectStoreNames.contains(STORES.PROFILES)) {
+        db.createObjectStore(STORES.PROFILES, { keyPath: 'walletAddress' })
       }
     }
   })
@@ -270,4 +288,71 @@ export function imageToBase64(file: File): Promise<string> {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+// ============ Profile Operations ============
+
+/**
+ * Save or update user profile
+ */
+export async function saveProfile(profile: UserProfile): Promise<void> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.PROFILES], 'readwrite')
+    const store = transaction.objectStore(STORES.PROFILES)
+    // Normalize wallet address to lowercase
+    const normalizedProfile = {
+      ...profile,
+      walletAddress: profile.walletAddress.toLowerCase(),
+      updatedAt: Date.now()
+    }
+    const request = store.put(normalizedProfile)
+
+    request.onerror = () => reject(new Error('Failed to save profile'))
+    request.onsuccess = () => resolve()
+  })
+}
+
+/**
+ * Get user profile by wallet address
+ */
+export async function getProfile(walletAddress: string): Promise<UserProfile | null> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.PROFILES], 'readonly')
+    const store = transaction.objectStore(STORES.PROFILES)
+    const request = store.get(walletAddress.toLowerCase())
+
+    request.onerror = () => reject(new Error('Failed to get profile'))
+    request.onsuccess = () => resolve(request.result || null)
+  })
+}
+
+/**
+ * Delete user profile
+ */
+export async function deleteProfile(walletAddress: string): Promise<void> {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.PROFILES], 'readwrite')
+    const store = transaction.objectStore(STORES.PROFILES)
+    const request = store.delete(walletAddress.toLowerCase())
+
+    request.onerror = () => reject(new Error('Failed to delete profile'))
+    request.onsuccess = () => resolve()
+  })
+}
+
+/**
+ * Create default profile for new user
+ */
+export function createDefaultProfile(walletAddress: string): UserProfile {
+  return {
+    walletAddress: walletAddress.toLowerCase(),
+    nickname: '',
+    avatar: '',
+    bio: '',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  }
 }
