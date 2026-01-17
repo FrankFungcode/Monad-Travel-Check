@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(vercel --yes:*)"
+      "Bash(vercel --yes:*)",
+      "Bash(vercel --version:*)",
+      "Bash(vercel:*)",
+      "Bash(dir:*)"
     ]
   }
 }
