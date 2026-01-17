@@ -1,68 +1,203 @@
 /**
  * @file ProfilePage Component
- * @description User profile and account management page
+ * @description User profile and account management page with real on-chain data
  */
 
 import Achievement from "@/components/common/Achievement";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
+import { EditProfileModal } from "@/components/business/EditProfileModal";
 import { useWallet } from "@/hooks/useWallet";
-import type { User } from "@/types/models.types";
+import { useStaking, StakeStatus } from "@/hooks/useStaking";
+import { useAttraction } from "@/hooks/useAttraction";
 import { formatAmount } from "@/utils/format";
-import { useState } from "react";
+import { getProfile, createDefaultProfile, type UserProfile } from "@/services/db.service";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { formatEther } from "ethers";
+
+interface ProfileStats {
+  totalStaked: string;
+  totalEarned: string;
+  activeStakes: number;
+  completedStakes: number;
+  totalCheckins: number;
+  attractionsCompleted: number;
+}
 
 /**
  * ProfilePage Component
  */
 export function ProfilePage() {
   const { t } = useTranslation();
-  const { address } = useWallet();
+  const { address, balance } = useWallet();
+  const { getUserStakes, getStake, getCheckinRecords, calculateInterest, getTotalRedPacketClaimed } = useStaking();
+  const { getAllTasks, getUserTaskInfo } = useAttraction();
 
-  // Mock user data
-  const [user] = useState<User>({
-    id: "user1",
-    walletAddress: address || "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-    nickname: "Travel Enthusiast",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=TravelCheck",
-    totalCheckins: 127,
-    currentStreak: 15,
-    maxStreak: 45,
-    lotteryChances: 3,
-    badges: ["early-bird", "perfect-month", "world-explorer"],
-    createdAt: new Date("2023-11-01")
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<ProfileStats>({
+    totalStaked: "0",
+    totalEarned: "0",
+    activeStakes: 0,
+    completedStakes: 0,
+    totalCheckins: 0,
+    attractionsCompleted: 0
   });
+  const [memberSinceDays, setMemberSinceDays] = useState(0);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const [stats] = useState({
-    totalStaked: 1500,
-    totalEarned: 125.5,
-    activeStakes: 4,
-    completedStakes: 8,
-    perfectDays: 38,
-    attractionsVisited: 12
-  });
+  // Load user profile from IndexedDB
+  const loadProfile = useCallback(async () => {
+    if (!address) return;
+    try {
+      let userProfile = await getProfile(address);
+      if (!userProfile) {
+        userProfile = createDefaultProfile(address);
+      }
+      setProfile(userProfile);
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  // Load real data from blockchain
+  const loadProfileData = useCallback(async () => {
+    if (!address) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get user's stake IDs
+      const stakeIds = await getUserStakes(address);
+
+      let totalStaked = BigInt(0);
+      let totalInterest = BigInt(0);
+      let totalRedPackets = BigInt(0);
+      let activeCount = 0;
+      let completedCount = 0;
+      let totalCheckinCount = 0;
+      let earliestStakeTime = Date.now();
+
+      // Process each stake
+      for (const stakeId of stakeIds) {
+        const stake = await getStake(stakeId);
+        if (stake) {
+          // Total staked amount
+          totalStaked += BigInt(Math.floor(parseFloat(stake.amount) * 1e18));
+
+          // Count active vs completed
+          if (stake.status === StakeStatus.ACTIVE) {
+            activeCount++;
+          } else if (stake.status === StakeStatus.COMPLETED || stake.status === StakeStatus.WITHDRAWN) {
+            completedCount++;
+          }
+
+          // Get checkin records
+          const checkins = await getCheckinRecords(stakeId);
+          totalCheckinCount += checkins.length;
+
+          // Calculate interest earned
+          const interest = await calculateInterest(stakeId);
+          totalInterest += BigInt(Math.floor(parseFloat(interest) * 1e18));
+
+          // Get red packets claimed
+          const redPacketClaimed = await getTotalRedPacketClaimed(stakeId);
+          totalRedPackets += BigInt(Math.floor(parseFloat(redPacketClaimed) * 1e18));
+
+          // Track earliest stake for "member since"
+          if (stake.startTime) {
+            const stakeTime = stake.startTime * 1000;
+            if (stakeTime < earliestStakeTime) {
+              earliestStakeTime = stakeTime;
+            }
+          }
+        }
+      }
+
+      // Calculate member since days
+      if (stakeIds.length > 0) {
+        const days = Math.floor((Date.now() - earliestStakeTime) / (1000 * 60 * 60 * 24));
+        setMemberSinceDays(days);
+      }
+
+      // Get attraction tasks completed
+      let attractionsCompleted = 0;
+      try {
+        const tasks = await getAllTasks();
+        for (const task of tasks) {
+          const userInfo = await getUserTaskInfo(task.id, address);
+          if (userInfo?.completed) {
+            attractionsCompleted++;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to get attraction data:', e);
+      }
+
+      // Total earned = interest + red packets
+      const totalEarned = totalInterest + totalRedPackets;
+
+      setStats({
+        totalStaked: formatEther(totalStaked),
+        totalEarned: formatEther(totalEarned),
+        activeStakes: activeCount,
+        completedStakes: completedCount,
+        totalCheckins: totalCheckinCount,
+        attractionsCompleted
+      });
+    } catch (error) {
+      console.error('Failed to load profile data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [address, getUserStakes, getStake, getCheckinRecords, calculateInterest, getTotalRedPacketClaimed, getAllTasks, getUserTaskInfo]);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
 
   const handleEditProfile = () => {
-    alert(t("profile.editProfile"));
+    setShowEditModal(true);
   };
 
   const handleChangeAvatar = () => {
-    alert(t("profile.changeAvatar"));
+    setShowEditModal(true);
   };
 
-  const formatWalletAddress = (address: string) => {
-    if (!address) return "";
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const handleProfileSave = (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
   };
 
-  const getDaysAsMember = () => {
-    const now = new Date();
-    const created = new Date(user.createdAt);
-    const days = Math.floor(
-      (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
+  const formatWalletAddress = (addr: string) => {
+    if (!addr) return "";
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  // Generate avatar based on wallet address or use saved avatar
+  const defaultAvatarUrl = address
+    ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${address}`
+    : "https://api.dicebear.com/7.x/avataaars/svg?seed=default";
+  const avatarUrl = profile?.avatar || defaultAvatarUrl;
+
+  // Display name
+  const displayName = profile?.nickname || t("profile.traveler");
+
+  if (!address) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-6xl">👤</div>
+        <h2 className="text-xl font-semibold text-white">{t("profile.connectWallet")}</h2>
+        <p className="text-text-muted">{t("profile.connectWalletDescription")}</p>
+      </div>
     );
-    return days;
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -82,11 +217,8 @@ export function ProfilePage() {
             <div className="flex-shrink-0">
               <div className="relative">
                 <img
-                  src={
-                    user.avatar ||
-                    "https://api.dicebear.com/7.x/avataaars/svg?seed=default"
-                  }
-                  alt={user.nickname || "User"}
+                  src={avatarUrl}
+                  alt="User Avatar"
                   className="w-32 h-32 rounded-full border-4 border-primary"
                 />
                 <button
@@ -121,8 +253,11 @@ export function ProfilePage() {
             {/* User Info */}
             <div className="flex-1 text-center md:text-left">
               <h2 className="text-2xl font-bold text-white mb-2">
-                {user.nickname || "Anonymous"}
+                {displayName}
               </h2>
+              {profile?.bio && (
+                <p className="text-text-muted text-sm mb-2">{profile.bio}</p>
+              )}
               <div className="space-y-2">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-text-muted">
                   <svg
@@ -133,7 +268,7 @@ export function ProfilePage() {
                     <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
                   </svg>
                   <span className="font-mono text-sm">
-                    {formatWalletAddress(user.walletAddress)}
+                    {formatWalletAddress(address)}
                   </span>
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-2 text-text-muted">
@@ -149,7 +284,19 @@ export function ProfilePage() {
                     />
                   </svg>
                   <span className="text-sm">
-                    {t("profile.memberSince")}: {getDaysAsMember()} days
+                    {t("profile.memberSince")}: {memberSinceDays} {t("profile.days")}
+                  </span>
+                </div>
+                <div className="flex items-center justify-center md:justify-start gap-2 text-primary">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+                  </svg>
+                  <span className="text-sm font-semibold">
+                    {t("profile.balance")}: {formatAmount(parseFloat(balance), 4)} MON
                   </span>
                 </div>
               </div>
@@ -164,7 +311,7 @@ export function ProfilePage() {
             <div className="grid grid-cols-3 gap-4 md:gap-6">
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
-                  {user.totalCheckins}
+                  {loading ? "..." : stats.totalCheckins}
                 </p>
                 <p className="text-xs text-text-muted">
                   {t("achievements.totalCheckins")}
@@ -172,18 +319,18 @@ export function ProfilePage() {
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
-                  {user.currentStreak}
+                  {loading ? "..." : stats.activeStakes}
                 </p>
                 <p className="text-xs text-text-muted">
-                  {t("home.currentStreak", { defaultValue: "Streak" })}
+                  {t("checkins.activeStakes")}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
-                  {user.badges.length}
+                  {loading ? "..." : stats.attractionsCompleted}
                 </p>
                 <p className="text-xs text-text-muted">
-                  {t("achievements.badges", { defaultValue: "Badges" })}
+                  {t("profile.attractions")}
                 </p>
               </div>
             </div>
@@ -205,7 +352,7 @@ export function ProfilePage() {
                     {t("profile.totalStaked")}
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    {formatAmount(stats.totalStaked)} MON
+                    {loading ? "..." : formatAmount(parseFloat(stats.totalStaked), 4)} MON
                   </p>
                 </div>
                 <div className="text-4xl">💰</div>
@@ -221,7 +368,7 @@ export function ProfilePage() {
                     {t("profile.totalEarned")}
                   </p>
                   <p className="text-2xl font-bold text-primary">
-                    {formatAmount(stats.totalEarned)} MON
+                    {loading ? "..." : formatAmount(parseFloat(stats.totalEarned), 6)} MON
                   </p>
                 </div>
                 <div className="text-4xl">📈</div>
@@ -237,7 +384,7 @@ export function ProfilePage() {
                     {t("checkins.activeStakes")}
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    {stats.activeStakes}
+                    {loading ? "..." : stats.activeStakes}
                   </p>
                 </div>
                 <div className="text-4xl">🔥</div>
@@ -253,7 +400,7 @@ export function ProfilePage() {
                     {t("checkins.completedStakes")}
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    {stats.completedStakes}
+                    {loading ? "..." : stats.completedStakes}
                   </p>
                 </div>
                 <div className="text-4xl">✅</div>
@@ -266,10 +413,10 @@ export function ProfilePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-muted mb-1">
-                    {t("achievements.perfectDays")}
+                    {t("achievements.totalCheckins")}
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    {stats.perfectDays}
+                    {loading ? "..." : stats.totalCheckins}
                   </p>
                 </div>
                 <div className="text-4xl">✨</div>
@@ -283,11 +430,11 @@ export function ProfilePage() {
                 <div>
                   <p className="text-sm text-text-muted mb-1">
                     {t("profile.attractionsVisited", {
-                      defaultValue: "Attractions"
+                      defaultValue: "Attractions Completed"
                     })}
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    {stats.attractionsVisited}
+                    {loading ? "..." : stats.attractionsCompleted}
                   </p>
                 </div>
                 <div className="text-4xl">🗺️</div>
@@ -297,7 +444,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* Activity Summary */}
+      {/* Achievement Wall */}
       <Card>
         <Card.Header>
           <h2 className="text-xl font-semibold text-white">{t('achievementWall.title')}</h2>
@@ -306,6 +453,27 @@ export function ProfilePage() {
           <Achievement />
         </Card.Body>
       </Card>
+
+      {/* Refresh Button */}
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          onClick={loadProfileData}
+          disabled={loading}
+        >
+          {loading ? t("common.loading") : t("profile.refresh")}
+        </Button>
+      </div>
+
+      {/* Edit Profile Modal */}
+      {profile && (
+        <EditProfileModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          profile={profile}
+          onSave={handleProfileSave}
+        />
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@
     "cancel": "取消",
     "submit": "提交",
     "save": "保存",
+    "saving": "保存中...",
     "delete": "删除",
     "edit": "编辑",
     "back": "返回",
@@ -155,7 +156,7 @@
     "noTasksDescription": "尝试选择不同的筛选条件或稍后查看新景点",
     "viewAllTasks": "查看全部任务",
     "confirmJoin": "确认加入 {{name}}?",
-    "joinDescription": "加入此任务需要进行链上交易确认。请确保您有足够的 ETH 支付 Gas 费。"
+    "joinDescription": "加入此任务需要进行链上交易确认。请确保您有足够的 MON 支付 Gas 费。"
   },
   "checkins": {
     "title": "我的打卡",
@@ -200,10 +201,30 @@
     "settings": "设置",
     "totalStaked": "总质押金额",
     "totalEarned": "总收益",
-    "memberSince": "注册时间",
+    "memberSince": "加入时间",
     "editProfile": "编辑资料",
     "changeAvatar": "更换头像",
-    "walletAddress": "钱包地址"
+    "walletAddress": "钱包地址",
+    "traveler": "旅行者",
+    "days": "天",
+    "balance": "余额",
+    "attractions": "景点完成",
+    "attractionsVisited": "已完成景点",
+    "refresh": "刷新数据",
+    "connectWallet": "请连接钱包",
+    "connectWalletDescription": "连接钱包后查看你的个人数据"
+  },
+  "editProfile": {
+    "title": "编辑资料",
+    "nickname": "昵称",
+    "nicknamePlaceholder": "输入你的昵称",
+    "bio": "个人简介",
+    "bioPlaceholder": "介绍一下你自己...",
+    "walletAddress": "钱包地址",
+    "clickToChangeAvatar": "点击更换头像",
+    "invalidImageType": "请选择图片文件",
+    "imageTooLarge": "图片大小不能超过2MB",
+    "saveFailed": "保存失败，请重试"
   },
   "footer": {
     "copyright": "© 2024 TravelCheck. 保留所有权利。",

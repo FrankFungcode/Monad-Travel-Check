@@ -53,15 +53,31 @@ export const MONAD_DEVNET: NetworkConfig = {
     symbol: 'MON',
     decimals: 18,
   },
-  rpcUrls: ['https://devnet.monad.xyz'], // 请根据实际情况修改
+  rpcUrls: ['https://devnet.monad.xyz'],
   blockExplorerUrls: [],
 }
 
 /**
- * Default network configuration
- * 默认使用 Hardhat 本地网络
+ * Monad Testnet configuration
  */
-export const DEFAULT_NETWORK = HARDHAT_LOCAL
+export const MONAD_TESTNET: NetworkConfig = {
+  chainId: '0x279F', // 10143 in hex
+  chainIdNumber: 10143,
+  chainName: 'Monad Testnet',
+  nativeCurrency: {
+    name: 'Monad',
+    symbol: 'MON',
+    decimals: 18,
+  },
+  rpcUrls: ['https://testnet-rpc.monad.xyz'],
+  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
+}
+
+/**
+ * Default network configuration
+ * 默认使用 Monad Testnet
+ */
+export const DEFAULT_NETWORK = MONAD_TESTNET
 
 /**
  * All supported networks
@@ -69,6 +85,7 @@ export const DEFAULT_NETWORK = HARDHAT_LOCAL
 export const SUPPORTED_NETWORKS: Record<number, NetworkConfig> = {
   [HARDHAT_LOCAL.chainIdNumber]: HARDHAT_LOCAL,
   [MONAD_DEVNET.chainIdNumber]: MONAD_DEVNET,
+  [MONAD_TESTNET.chainIdNumber]: MONAD_TESTNET,
 }
 
 /**
