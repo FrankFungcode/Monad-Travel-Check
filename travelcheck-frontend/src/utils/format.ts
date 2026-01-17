@@ -50,7 +50,7 @@ export function formatAddress(
  * formatAmount(0.001, 6)
  * // Returns: '0.001000'
  */
-export function formatAmount(amount: number, decimals = 2): string {
+export function formatAmount(amount: number, decimals = 4): string {
   if (Number.isNaN(amount)) {
     return "0";
   }
