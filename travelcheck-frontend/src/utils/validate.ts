@@ -22,13 +22,13 @@
  * // Returns: false
  */
 export function isValidAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') {
-    return false
+  if (!address || typeof address !== "string") {
+    return false;
   }
 
   // Check if it starts with 0x and has 40 hex characters after
-  const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/
-  return ethereumAddressRegex.test(address)
+  const ethereumAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+  return ethereumAddressRegex.test(address);
 }
 
 /**
@@ -55,16 +55,20 @@ export function isValidAddress(address: string): boolean {
  * isValidAmount(Number.NaN, 1, 100)
  * // Returns: false
  */
-export function isValidAmount(amount: number, min: number, max: number): boolean {
-  if (typeof amount !== 'number' || Number.isNaN(amount)) {
-    return false
+export function isValidAmount(
+  amount: number,
+  min: number,
+  max: number
+): boolean {
+  if (typeof amount !== "number" || Number.isNaN(amount)) {
+    return false;
   }
 
   if (!Number.isFinite(amount)) {
-    return false
+    return false;
   }
 
-  return amount >= min && amount <= max
+  return amount >= min && amount <= max;
 }
 
 /**
@@ -91,12 +95,12 @@ export function isValidAmount(amount: number, min: number, max: number): boolean
  * // Returns: false (trimmed empty string)
  */
 export function isValidContent(content: string, minLength: number): boolean {
-  if (!content || typeof content !== 'string') {
-    return false
+  if (!content || typeof content !== "string") {
+    return false;
   }
 
-  const trimmedContent = content.trim()
-  return trimmedContent.length >= minLength
+  const trimmedContent = content.trim();
+  return trimmedContent.length >= minLength;
 }
 
 /**
@@ -114,12 +118,12 @@ export function isValidContent(content: string, minLength: number): boolean {
  * // Returns: false
  */
 export function isValidEmail(email: string): boolean {
-  if (!email || typeof email !== 'string') {
-    return false
+  if (!email || typeof email !== "string") {
+    return false;
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
 /**
@@ -137,15 +141,15 @@ export function isValidEmail(email: string): boolean {
  * // Returns: false
  */
 export function isValidUrl(url: string): boolean {
-  if (!url || typeof url !== 'string') {
-    return false
+  if (!url || typeof url !== "string") {
+    return false;
   }
 
   try {
-    const urlObj = new URL(url)
-    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:'
+    const urlObj = new URL(url);
+    return urlObj.protocol === "http:" || urlObj.protocol === "https:";
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -156,7 +160,7 @@ export function isValidUrl(url: string): boolean {
  * @returns True if valid date, false otherwise
  *
  * @example
- * isValidDate('2024-01-15')
+ * isValidDate('2026-01-15')
  * // Returns: true
  *
  * @example
@@ -169,11 +173,11 @@ export function isValidUrl(url: string): boolean {
  */
 export function isValidDate(date: string | Date): boolean {
   if (!date) {
-    return false
+    return false;
   }
 
-  const dateObj = typeof date === 'string' ? new Date(date) : date
-  return !Number.isNaN(dateObj.getTime())
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return !Number.isNaN(dateObj.getTime());
 }
 
 /**
@@ -195,7 +199,7 @@ export function isValidDate(date: string | Date): boolean {
  * // Returns: false
  */
 export function isValidInteger(value: unknown): boolean {
-  return typeof value === 'number' && Number.isInteger(value)
+  return typeof value === "number" && Number.isInteger(value);
 }
 
 /**
@@ -213,9 +217,9 @@ export function isValidInteger(value: unknown): boolean {
  * // Returns: false
  */
 export function isAlphanumeric(str: string): boolean {
-  if (!str || typeof str !== 'string') {
-    return false
+  if (!str || typeof str !== "string") {
+    return false;
   }
 
-  return /^[a-zA-Z0-9]+$/.test(str)
+  return /^[a-zA-Z0-9]+$/.test(str);
 }

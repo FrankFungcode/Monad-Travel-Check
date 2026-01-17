@@ -51,11 +51,11 @@ export interface CalendarGridProps {
  *
  * @example
  * <CalendarGrid
- *   year={2024}
+ *   year={2026}
  *   month={1}
  *   checkins={{
- *     '2024-01-01': { status: 'checked', canMakeup: false },
- *     '2024-01-02': { status: 'missed', canMakeup: true },
+ *     '2026-01-01': { status: 'checked', canMakeup: false },
+ *     '2026-01-02': { status: 'missed', canMakeup: true },
  *   }}
  *   onDayClick={(date) => console.log('Clicked', date)}
  * />

@@ -8,10 +8,10 @@ import type {
   SubmitCheckinRequest,
   SubmitCheckinResponse,
   SubmitMakeupRequest,
-  SubmitMakeupResponse,
-} from '@/types/api.types'
-import type { Checkin } from '@/types/models.types'
-import api, { extractData } from './api'
+  SubmitMakeupResponse
+} from "@/types/api.types";
+import type { Checkin } from "@/types/models.types";
+import api, { extractData } from "./api";
 
 /**
  * Submit a daily check-in
@@ -27,10 +27,15 @@ import api, { extractData } from './api'
  *   location: { lat: 40.7128, lng: -74.0060 }
  * })
  */
-export async function submitCheckin(request: SubmitCheckinRequest): Promise<SubmitCheckinResponse> {
-  const response = await api.post<never, never, SubmitCheckinRequest>('/checkins', request)
+export async function submitCheckin(
+  request: SubmitCheckinRequest
+): Promise<SubmitCheckinResponse> {
+  const response = await api.post<never, never, SubmitCheckinRequest>(
+    "/checkins",
+    request
+  );
 
-  return extractData<SubmitCheckinResponse>(response)
+  return extractData<SubmitCheckinResponse>(response);
 }
 
 /**
@@ -42,15 +47,20 @@ export async function submitCheckin(request: SubmitCheckinRequest): Promise<Subm
  * @example
  * const checkin = await submitMakeup({
  *   stakeId: 'stake-123',
- *   date: '2024-01-15',
+ *   date: '2026-01-15',
  *   content: 'Makeup for missed day',
  *   images: ['url1']
  * })
  */
-export async function submitMakeup(request: SubmitMakeupRequest): Promise<SubmitMakeupResponse> {
-  const response = await api.post<never, never, SubmitMakeupRequest>('/checkins/makeup', request)
+export async function submitMakeup(
+  request: SubmitMakeupRequest
+): Promise<SubmitMakeupResponse> {
+  const response = await api.post<never, never, SubmitMakeupRequest>(
+    "/checkins/makeup",
+    request
+  );
 
-  return extractData<SubmitMakeupResponse>(response)
+  return extractData<SubmitMakeupResponse>(response);
 }
 
 /**
@@ -62,17 +72,19 @@ export async function submitMakeup(request: SubmitMakeupRequest): Promise<Submit
  * @returns Promise resolving to calendar data
  *
  * @example
- * const calendar = await getCalendar('stake-123', 2024, 1)
- * console.log('January 2024 check-ins:', calendar.checkins)
+ * const calendar = await getCalendar('stake-123', 2026, 1)
+ * console.log('January 2026 check-ins:', calendar.checkins)
  */
 export async function getCalendar(
   stakeId: string,
   year: number,
   month: number
 ): Promise<GetCalendarResponse> {
-  const response = await api.get<never>(`/checkins/calendar/${stakeId}?year=${year}&month=${month}`)
+  const response = await api.get<never>(
+    `/checkins/calendar/${stakeId}?year=${year}&month=${month}`
+  );
 
-  return extractData<GetCalendarResponse>(response)
+  return extractData<GetCalendarResponse>(response);
 }
 
 /**
@@ -85,9 +97,9 @@ export async function getCalendar(
  * const checkins = await getCheckins('stake-123')
  */
 export async function getCheckins(stakeId: string): Promise<Checkin[]> {
-  const response = await api.get<never>(`/checkins/${stakeId}`)
+  const response = await api.get<never>(`/checkins/${stakeId}`);
 
-  return extractData<Checkin[]>(response)
+  return extractData<Checkin[]>(response);
 }
 
 /**
@@ -100,9 +112,9 @@ export async function getCheckins(stakeId: string): Promise<Checkin[]> {
  * const checkin = await getCheckinById('checkin-123')
  */
 export async function getCheckinById(checkinId: string): Promise<Checkin> {
-  const response = await api.get<never>(`/checkins/detail/${checkinId}`)
+  const response = await api.get<never>(`/checkins/detail/${checkinId}`);
 
-  return extractData<Checkin>(response)
+  return extractData<Checkin>(response);
 }
 
 /**
@@ -116,19 +128,19 @@ export async function getCheckinById(checkinId: string): Promise<Checkin> {
  * // Returns: { totalCheckins, missedDays, makeupUsed, currentStreak }
  */
 export async function getCheckinStats(stakeId: string): Promise<{
-  totalCheckins: number
-  missedDays: number
-  makeupUsed: number
-  currentStreak: number
+  totalCheckins: number;
+  missedDays: number;
+  makeupUsed: number;
+  currentStreak: number;
 }> {
-  const response = await api.get<never>(`/checkins/${stakeId}/stats`)
+  const response = await api.get<never>(`/checkins/${stakeId}/stats`);
 
   return extractData<{
-    totalCheckins: number
-    missedDays: number
-    makeupUsed: number
-    currentStreak: number
-  }>(response)
+    totalCheckins: number;
+    missedDays: number;
+    makeupUsed: number;
+    currentStreak: number;
+  }>(response);
 }
 
 /**
@@ -142,17 +154,21 @@ export async function getCheckinStats(stakeId: string): Promise<{
  * console.log('Uploaded URLs:', urls)
  */
 export async function uploadCheckinImages(files: File[]): Promise<string[]> {
-  const formData = new FormData()
+  const formData = new FormData();
 
   for (const file of files) {
-    formData.append('images', file)
+    formData.append("images", file);
   }
 
-  const response = await api.post<never, never, FormData>('/checkins/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
+  const response = await api.post<never, never, FormData>(
+    "/checkins/upload",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    }
+  );
 
-  return extractData<string[]>(response)
+  return extractData<string[]>(response);
 }

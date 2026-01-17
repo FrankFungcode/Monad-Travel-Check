@@ -137,6 +137,7 @@
     "badges": "Badges",
     "earned": "Earned",
     "locked": "Locked",
+    "connectToView": "Connect wallet to view rewards",
     "recentRewards": "Recent Rewards",
     "dailyRedPacket": "Daily Red Packet",
     "daysAgo": "days ago",
@@ -206,7 +207,7 @@
     "walletAddress": "Wallet Address"
   },
   "footer": {
-    "copyright": "© 2024 TravelCheck. All rights reserved.",
+    "copyright": "© 2026 TravelCheck. All rights reserved.",
     "tagline": "Explore the world, earn rewards with blockchain"
   },
   "theme": {

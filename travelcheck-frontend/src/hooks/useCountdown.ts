@@ -3,8 +3,8 @@
  * @description Custom hook for countdown timer
  */
 
-import { formatCountdown } from '@/utils/format'
-import { useEffect, useState } from 'react'
+import { formatCountdown } from "@/utils/format";
+import { useEffect, useState } from "react";
 
 /**
  * Custom hook for countdown timer
@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react'
  *
  * @example
  * const { timeLeft, formatted, isComplete } = useCountdown(
- *   new Date('2024-12-31'),
+ *   new Date('2026-12-31'),
  *   () => console.log('Countdown complete!')
  * )
  *
@@ -23,46 +23,46 @@ import { useEffect, useState } from 'react'
  * // Displays: "23:59:42"
  */
 export function useCountdown(targetDate: Date | null, onComplete?: () => void) {
-  const [timeLeft, setTimeLeft] = useState<number>(0)
-  const [isComplete, setIsComplete] = useState<boolean>(false)
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isComplete, setIsComplete] = useState<boolean>(false);
 
   useEffect(() => {
     if (!targetDate) {
-      setTimeLeft(0)
-      setIsComplete(true)
-      return
+      setTimeLeft(0);
+      setIsComplete(true);
+      return;
     }
 
     const calculateTimeLeft = () => {
-      const now = new Date().getTime()
-      const target = new Date(targetDate).getTime()
-      const difference = target - now
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const difference = target - now;
 
       if (difference <= 0) {
-        setTimeLeft(0)
-        setIsComplete(true)
+        setTimeLeft(0);
+        setIsComplete(true);
         if (onComplete) {
-          onComplete()
+          onComplete();
         }
-        return 0
+        return 0;
       }
 
-      const seconds = Math.floor(difference / 1000)
-      setTimeLeft(seconds)
-      setIsComplete(false)
-      return seconds
-    }
+      const seconds = Math.floor(difference / 1000);
+      setTimeLeft(seconds);
+      setIsComplete(false);
+      return seconds;
+    };
 
     // Calculate initial time
-    calculateTimeLeft()
+    calculateTimeLeft();
 
     // Update every second
     const interval = setInterval(() => {
-      calculateTimeLeft()
-    }, 1000)
+      calculateTimeLeft();
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [targetDate, onComplete])
+    return () => clearInterval(interval);
+  }, [targetDate, onComplete]);
 
   return {
     /** Total seconds remaining */
@@ -75,8 +75,8 @@ export function useCountdown(targetDate: Date | null, onComplete?: () => void) {
     days: Math.floor(timeLeft / 86400),
     hours: Math.floor((timeLeft % 86400) / 3600),
     minutes: Math.floor((timeLeft % 3600) / 60),
-    seconds: Math.floor(timeLeft % 60),
-  }
+    seconds: Math.floor(timeLeft % 60)
+  };
 }
 
 /**
@@ -98,55 +98,58 @@ export function useCountdown(targetDate: Date | null, onComplete?: () => void) {
  * // Reset to initial value
  * reset()
  */
-export function useIntervalCountdown(initialSeconds: number, onComplete?: () => void) {
-  const [timeLeft, setTimeLeft] = useState<number>(initialSeconds)
-  const [isRunning, setIsRunning] = useState<boolean>(false)
-  const [isComplete, setIsComplete] = useState<boolean>(false)
+export function useIntervalCountdown(
+  initialSeconds: number,
+  onComplete?: () => void
+) {
+  const [timeLeft, setTimeLeft] = useState<number>(initialSeconds);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isComplete, setIsComplete] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) {
-      return
+      return;
     }
 
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          setIsRunning(false)
-          setIsComplete(true)
+          setIsRunning(false);
+          setIsComplete(true);
           if (onComplete) {
-            onComplete()
+            onComplete();
           }
-          return 0
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [isRunning, timeLeft, onComplete])
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft, onComplete]);
 
   const start = () => {
     if (timeLeft > 0) {
-      setIsRunning(true)
-      setIsComplete(false)
+      setIsRunning(true);
+      setIsComplete(false);
     }
-  }
+  };
 
   const pause = () => {
-    setIsRunning(false)
-  }
+    setIsRunning(false);
+  };
 
   const reset = () => {
-    setTimeLeft(initialSeconds)
-    setIsRunning(false)
-    setIsComplete(false)
-  }
+    setTimeLeft(initialSeconds);
+    setIsRunning(false);
+    setIsComplete(false);
+  };
 
   const resume = () => {
     if (timeLeft > 0 && !isRunning) {
-      setIsRunning(true)
+      setIsRunning(true);
     }
-  }
+  };
 
   return {
     /** Total seconds remaining */
@@ -166,6 +169,6 @@ export function useIntervalCountdown(initialSeconds: number, onComplete?: () => 
     start,
     pause,
     reset,
-    resume,
-  }
+    resume
+  };
 }
