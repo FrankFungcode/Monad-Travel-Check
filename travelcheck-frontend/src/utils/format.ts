@@ -19,12 +19,16 @@
  * formatAddress('0x1234567890abcdef1234567890abcdef12345678', 8, 6)
  * // Returns: '0x123456...345678'
  */
-export function formatAddress(address: string, startLength = 6, endLength = 4): string {
+export function formatAddress(
+  address: string,
+  startLength = 6,
+  endLength = 4
+): string {
   if (!address || address.length < startLength + endLength) {
-    return address
+    return address;
   }
 
-  return `${address.slice(0, startLength)}...${address.slice(-endLength)}`
+  return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
 }
 
 /**
@@ -48,13 +52,13 @@ export function formatAddress(address: string, startLength = 6, endLength = 4): 
  */
 export function formatAmount(amount: number, decimals = 2): string {
   if (Number.isNaN(amount)) {
-    return '0'
+    return "0";
   }
 
-  return amount.toLocaleString('en-US', {
+  return amount.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  })
+    maximumFractionDigits: decimals
+  });
 }
 
 /**
@@ -65,38 +69,38 @@ export function formatAmount(amount: number, decimals = 2): string {
  * @returns Formatted date string
  *
  * @example
- * formatDate(new Date('2024-01-15'))
- * // Returns: '2024-01-15'
+ * formatDate(new Date('2026-01-15'))
+ * // Returns: '2026-01-15'
  *
  * @example
- * formatDate(new Date('2024-01-15T10:30:00'), 'YYYY-MM-DD HH:mm')
- * // Returns: '2024-01-15 10:30'
+ * formatDate(new Date('2026-01-15T10:30:00'), 'YYYY-MM-DD HH:mm')
+ * // Returns: '2026-01-15 10:30'
  *
  * @example
- * formatDate('2024-01-15T10:30:00Z', 'MM/DD/YYYY')
- * // Returns: '01/15/2024'
+ * formatDate('2026-01-15T10:30:00Z', 'MM/DD/YYYY')
+ * // Returns: '01/15/2026'
  */
-export function formatDate(date: Date | string, format = 'YYYY-MM-DD'): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
+export function formatDate(date: Date | string, format = "YYYY-MM-DD"): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
 
   if (Number.isNaN(dateObj.getTime())) {
-    return ''
+    return "";
   }
 
-  const year = dateObj.getFullYear()
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-  const day = String(dateObj.getDate()).padStart(2, '0')
-  const hours = String(dateObj.getHours()).padStart(2, '0')
-  const minutes = String(dateObj.getMinutes()).padStart(2, '0')
-  const seconds = String(dateObj.getSeconds()).padStart(2, '0')
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+  const seconds = String(dateObj.getSeconds()).padStart(2, "0");
 
   return format
-    .replace('YYYY', String(year))
-    .replace('MM', month)
-    .replace('DD', day)
-    .replace('HH', hours)
-    .replace('mm', minutes)
-    .replace('ss', seconds)
+    .replace("YYYY", String(year))
+    .replace("MM", month)
+    .replace("DD", day)
+    .replace("HH", hours)
+    .replace("mm", minutes)
+    .replace("ss", seconds);
 }
 
 /**
@@ -119,20 +123,20 @@ export function formatDate(date: Date | string, format = 'YYYY-MM-DD'): string {
  */
 export function formatCountdown(seconds: number): string {
   if (seconds < 0) {
-    return '00:00'
+    return "00:00";
   }
 
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
 
-  const pad = (num: number) => String(num).padStart(2, '0')
+  const pad = (num: number) => String(num).padStart(2, "0");
 
   if (hours > 0) {
-    return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`
+    return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
   }
 
-  return `${pad(minutes)}:${pad(secs)}`
+  return `${pad(minutes)}:${pad(secs)}`;
 }
 
 /**
@@ -151,7 +155,7 @@ export function formatCountdown(seconds: number): string {
  * // Returns: '12.34%'
  */
 export function formatPercentage(value: number, decimals = 1): string {
-  return `${(value * 100).toFixed(decimals)}%`
+  return `${(value * 100).toFixed(decimals)}%`;
 }
 
 /**
@@ -169,11 +173,11 @@ export function formatPercentage(value: number, decimals = 1): string {
  * // Returns: '1.00 MB'
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes'
+  if (bytes === 0) return "0 Bytes";
 
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return `${(bytes / k ** i).toFixed(2)} ${sizes[i]}`
+  return `${(bytes / k ** i).toFixed(2)} ${sizes[i]}`;
 }

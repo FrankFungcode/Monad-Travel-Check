@@ -203,8 +203,8 @@ export function calculateProgress(current: number, target: number): number {
  * @returns Estimated completion date
  *
  * @example
- * calculateCompletionDate(new Date('2024-01-01'), 30)
- * // Returns: Date('2024-01-31')
+ * calculateCompletionDate(new Date('2026-01-01'), 30)
+ * // Returns: Date('2026-01-31')
  */
 export function calculateCompletionDate(
   startDate: Date,
@@ -222,8 +222,8 @@ export function calculateCompletionDate(
  * @returns Days remaining (0 if past target)
  *
  * @example
- * calculateDaysRemaining(new Date('2024-12-31'))
- * // Returns: number of days until Dec 31, 2024
+ * calculateDaysRemaining(new Date('2026-12-31'))
+ * // Returns: number of days until Dec 31, 2026
  */
 export function calculateDaysRemaining(targetDate: Date): number {
   const now = new Date();
